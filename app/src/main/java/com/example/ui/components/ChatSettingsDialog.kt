@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Timer
@@ -28,9 +31,16 @@ import com.example.ui.theme.*
 @Composable
 fun ChatSettingsDialog(
     chat: ChatEntity,
+    isContactBlocked: Boolean = false,
+    isReadReceiptsEnabled: Boolean = true,
+    groupNotificationSounds: Map<String, String> = emptyMap(),
     onDismiss: () -> Unit,
     onEphemeralTimerChange: (Long) -> Unit,
-    onWallpaperThemeChange: (String) -> Unit
+    onWallpaperThemeChange: (String) -> Unit,
+    onExportChatHistory: (String) -> Unit = {},
+    onToggleBlockContact: (Boolean) -> Unit = {},
+    onToggleReadReceipts: (Boolean) -> Unit = {},
+    onUpdateGroupNotificationSound: (groupName: String, soundName: String) -> Unit = { _, _ -> }
 ) {
     val timerOptions = listOf(
         0L to "Off (Persistent)",
@@ -183,6 +193,219 @@ fun ChatSettingsDialog(
                             fontFamily = FontFamily.Monospace,
                             fontWeight = FontWeight.Bold
                         )
+                    }
+                }
+
+                Divider(color = BorderSlate)
+
+                // Section 3: Export Encrypted Chat Backup
+                var showPassphraseInput by remember { mutableStateOf(false) }
+                var exportPassphrase by remember { mutableStateOf("") }
+
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Download, contentDescription = null, tint = TacticalEmerald, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "EXPORT ENCRYPTED CHAT HISTORY",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TacticalEmerald,
+                            letterSpacing = 1.sp
+                        )
+                    }
+
+                    Text(
+                        text = "Save local backup of chat history into an AES-256-GCM + Kyber encrypted file (.qchat) before ephemeral messages expire.",
+                        fontSize = 11.sp,
+                        color = TextMuted,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+
+                    if (!showPassphraseInput) {
+                        Button(
+                            onClick = { showPassphraseInput = true },
+                            colors = ButtonDefaults.buttonColors(containerColor = InnerBoxSlate, contentColor = TacticalEmerald),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("btn_trigger_chat_export")
+                        ) {
+                            Icon(Icons.Default.Lock, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("Export Encrypted .qchat Backup", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    } else {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = exportPassphrase,
+                                onValueChange = { exportPassphrase = it },
+                                label = { Text("Export Passphrase", color = TextMuted) },
+                                singleLine = true,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = TextPrimary,
+                                    unfocusedTextColor = TextPrimary,
+                                    focusedBorderColor = TacticalEmerald,
+                                    unfocusedBorderColor = BorderSlate
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("input_export_chat_passphrase")
+                            )
+
+                            Button(
+                                onClick = {
+                                    if (exportPassphrase.isNotBlank()) {
+                                        onExportChatHistory(exportPassphrase)
+                                        showPassphraseInput = false
+                                        exportPassphrase = ""
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = TacticalEmerald, contentColor = ObsidianBlack),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .testTag("btn_confirm_export_chat")
+                            ) {
+                                Text("Generate Encrypted .qchat File", fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+
+                Divider(color = BorderSlate)
+
+                // Section 4: Block / Unblock Contact
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Block,
+                            contentDescription = null,
+                            tint = if (isContactBlocked) TacticalEmerald else AlertCrimson,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (isContactBlocked) "CONTACT IS BLOCKED" else "BLOCK CONTACT",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isContactBlocked) TacticalEmerald else AlertCrimson,
+                            letterSpacing = 1.sp
+                        )
+                    }
+
+                    Button(
+                        onClick = { onToggleBlockContact(!isContactBlocked) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isContactBlocked) TacticalEmerald else AlertCrimson,
+                            contentColor = ObsidianBlack
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.testTag("btn_dialog_toggle_block")
+                    ) {
+                        Text(
+                            text = if (isContactBlocked) "Unblock" else "Block",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                Divider(color = BorderSlate)
+
+                // Section 5: Zero-Knowledge Read Receipts
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "ZERO-KNOWLEDGE READ RECEIPTS",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = QuantumCyan,
+                            letterSpacing = 1.sp
+                        )
+                        Text(
+                            text = "Recipients will not see blue read indicators or timestamps",
+                            fontSize = 10.sp,
+                            color = TextMuted
+                        )
+                    }
+                    Switch(
+                        checked = isReadReceiptsEnabled,
+                        onCheckedChange = onToggleReadReceipts,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = ObsidianBlack,
+                            checkedTrackColor = QuantumCyan,
+                            uncheckedThumbColor = TextMuted,
+                            uncheckedTrackColor = InnerBoxSlate
+                        ),
+                        modifier = Modifier.testTag("switch_read_receipts")
+                    )
+                }
+
+                Divider(color = BorderSlate)
+
+                // Section 6: Group Custom Notification Sounds
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = "GROUP NOTIFICATION SOUNDS",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = WarningAmber,
+                        letterSpacing = 1.sp
+                    )
+                    Text(
+                        text = "Distinguish Work vs Personal groups without unlocking device",
+                        fontSize = 10.sp,
+                        color = TextMuted
+                    )
+
+                    val groupList = listOf("Work", "Family", "Friends", "VIP", "Tactical")
+                    val soundOptions = listOf("Radar Beep", "Warm Chime", "Pop Synth", "Quantum Siren", "Sonar Ping")
+
+                    groupList.forEach { groupName ->
+                        val currentSound = groupNotificationSounds[groupName] ?: "Radar Beep"
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "🏷️ $groupName",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary
+                            )
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                soundOptions.take(3).forEach { sound ->
+                                    val isSelected = currentSound == sound
+                                    Surface(
+                                        color = if (isSelected) WarningAmber else InnerBoxSlate,
+                                        shape = RoundedCornerShape(6.dp),
+                                        modifier = Modifier
+                                            .padding(start = 4.dp)
+                                            .clickable { onUpdateGroupNotificationSound(groupName, sound) }
+                                            .testTag("sound_${groupName}_$sound")
+                                    ) {
+                                        Text(
+                                            text = sound.take(5),
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isSelected) ObsidianBlack else TextMuted,
+                                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 3.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

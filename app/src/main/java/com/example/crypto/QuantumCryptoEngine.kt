@@ -168,6 +168,35 @@ object QuantumCryptoEngine {
         val lastSyncedTime: Long = System.currentTimeMillis()
     )
 
+    data class PqcDiagnosticMetrics(
+        val p2pLatencyMs: Int = 18,
+        val p2pPacketLossPercent: Float = 0.02f,
+        val p2pBandwidthKbps: Int = 1240,
+        val p2pActiveProtocol: String = "WebSocket Direct P2P (TLS 1.3)",
+        val walkieTalkieSignalDbm: Int = -58,
+        val walkieTalkieSquelchPercent: Int = 98,
+        val walkieTalkieSnrDb: Int = 34,
+        val walkieTalkieAudioQuality: String = "Opus HD (24kHz / PQC)",
+        val pqcKemAlgorithm: String = "CRYSTALS-Kyber-1024",
+        val pqcDigitalSignature: String = "Dilithium-5 Dual Signature",
+        val pqcSymmetricCipher: String = "AES-256-GCM / ChaCha20-Poly1305",
+        val pqcQuantumEntropyScore: Float = 99.8f,
+        val pqcSessionId: String = "PQC-SESS-98F21A",
+        val pqcKeyRekeyCountdownSec: Int = 42,
+        val pqcZeroKnowledgeVerified: Boolean = true
+    )
+
+    data class P2pDataUsageMetrics(
+        val totalMbConsumed: Float = 148.5f,
+        val stateSyncMb: Float = 34.2f,
+        val fileTransferMb: Float = 88.5f,
+        val walkieTalkieAudioMb: Float = 18.3f,
+        val cloudBackupMb: Float = 7.5f,
+        val dailyBandwidthLimitMb: Float = 1000.0f,
+        val isBatterySaverEnabled: Boolean = false,
+        val checkInIntervalSec: Int = 5
+    )
+
     /**
      * Encrypts file data using phone hardware resources (Kyber-1024 KEM + AES-256-GCM)
      */

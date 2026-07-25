@@ -12,6 +12,9 @@ data class ContactEntity(
     val pqcPublicKey: String,
     val verifiedFingerprint: String,
     val isOnline: Boolean = true,
-    val lastSeenTimestamp: Long = System.currentTimeMillis()
+    val presenceStatus: String = "ONLINE", // "ONLINE", "AWAY", "OFFLINE"
+    val isBlocked: Boolean = false,
+    val lastSeenTimestamp: Long = System.currentTimeMillis(),
+    val tag: String = "Friends"
 )
 

@@ -13,7 +13,7 @@ import androidx.room.RoomDatabase
         CloudAccountEntity::class,
         StatusStoryEntity::class
     ],
-    version = 4,
+    version = 6,
     exportSchema = false
 )
 abstract class QuantumDatabase : RoomDatabase() {

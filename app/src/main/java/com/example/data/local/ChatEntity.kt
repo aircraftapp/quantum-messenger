@@ -20,5 +20,6 @@ data class ChatEntity(
     val wallpaperTheme: String = "DARK_SLATE", // DARK_SLATE, MATRIX_GREEN, CYBERPUNK, MIDNIGHT_AURORA, SUNSET_GOLD
     val isChannel: Boolean = false, // Telegram-style broadcast channel
     val channelSubscriberCount: Int = 0,
-    val isArchived: Boolean = false
+    val isArchived: Boolean = false,
+    val draftText: String = ""
 )

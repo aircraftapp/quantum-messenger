@@ -39,6 +39,14 @@ class P2pNetworkManager private constructor(
     private val peerAddressMap = ConcurrentHashMap<String, String>() // nodeId -> address
     private val peerDetailsMap = ConcurrentHashMap<String, P2pPeerNode>() // nodeId -> PeerNode
 
+    private val _isBatterySaverMode = MutableStateFlow(false)
+    val isBatterySaverMode: StateFlow<Boolean> = _isBatterySaverMode.asStateFlow()
+
+    fun setBatterySaverMode(enabled: Boolean) {
+        _isBatterySaverMode.value = enabled
+        Log.i("P2pNetworkManager", "Battery Saver Mode set to $enabled. P2P check-in interval: ${if (enabled) 60 else 5} seconds.")
+    }
+
     // Listener for incoming decrypted messages to store in Room DB
     var onIncomingMessageListener: ((senderNodeId: String, senderName: String, chatId: String, encryptedPayload: String, pqcPublicKey: String?) -> Unit)? = null
     var onIncomingWalkieTalkieListener: ((senderNodeId: String, senderName: String, chatId: String, channel: String, durationSeconds: Int, encryptedPayload: String) -> Unit)? = null

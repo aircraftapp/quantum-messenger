@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.sp
 import com.example.data.local.ChatEntity
 import com.example.data.local.MessageEntity
 import com.example.data.local.MessageType
+import com.example.crypto.QuantumCryptoEngine
+import com.example.ui.components.RealtimeAudioWaveformVisualizer
 import com.example.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -45,12 +47,20 @@ fun ConversationScreen(
     isPttTransmitting: Boolean = false,
     pttTransmissionDuration: Int = 0,
     latestPttReceivedAlert: String? = null,
+    activeFileOperationName: String? = null,
+    fileOperationProgress: Float = 0f,
+    fileOperationStatus: String? = null,
+    diagnosticMetrics: QuantumCryptoEngine.PqcDiagnosticMetrics = QuantumCryptoEngine.PqcDiagnosticMetrics(),
+    isDiagnosticPanelOpen: Boolean = false,
+    isChatSearchActive: Boolean = false,
+    inChatSearchQuery: String = "",
     onBackClick: () -> Unit,
     onMessageInputChange: (String) -> Unit,
     onSendMessageClick: () -> Unit,
     onToggleAudioRecording: () -> Unit,
     onSendVideoNoteClick: () -> Unit,
     onSendFileClick: (String, String) -> Unit,
+    onDecryptFileClick: (messageId: String, fileName: String) -> Unit = { _, _ -> },
     onEphemeralTimerClick: () -> Unit,
     onOpenSettingsClick: () -> Unit = {},
     onToggleReaction: (messageId: String, currentReactions: String, emoji: String) -> Unit = { _, _, _ -> },
@@ -60,7 +70,13 @@ fun ConversationScreen(
     onStartPttTransmission: () -> Unit = {},
     onStopPttTransmission: () -> Unit = {},
     onSendPttQuickBurst: (String) -> Unit = {},
-    onDismissPttAlert: () -> Unit = {}
+    onDismissPttAlert: () -> Unit = {},
+    onToggleDiagnosticPanel: () -> Unit = {},
+    onToggleChatSearch: (Boolean) -> Unit = {},
+    onUpdateInChatSearchQuery: (String) -> Unit = {},
+    onExportChatHistoryClick: (passphrase: String) -> Unit = {},
+    isContactBlocked: Boolean = false,
+    onToggleBlockContact: (Boolean) -> Unit = {}
 ) {
     val listState = rememberLazyListState()
     var showAttachmentMenu by remember { mutableStateOf(false) }
@@ -207,6 +223,50 @@ fun ConversationScreen(
                         )
                     }
 
+                    // In-Chat Message Search Toggle Button
+                    IconButton(
+                        onClick = { onToggleChatSearch(!isChatSearchActive) },
+                        modifier = Modifier
+                            .testTag("btn_toggle_chat_search")
+                            .background(
+                                if (isChatSearchActive) QuantumCyan.copy(alpha = 0.25f) else Color.Transparent,
+                                CircleShape
+                            )
+                            .border(
+                                1.dp,
+                                if (isChatSearchActive) QuantumCyan else Color.Transparent,
+                                CircleShape
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search Message History",
+                            tint = if (isChatSearchActive) QuantumCyan else TextPrimary
+                        )
+                    }
+
+                    // Diagnostic Telemetry Panel Toggle Button
+                    IconButton(
+                        onClick = onToggleDiagnosticPanel,
+                        modifier = Modifier
+                            .testTag("btn_diagnostic_panel_toggle")
+                            .background(
+                                if (isDiagnosticPanelOpen) QuantumCyan.copy(alpha = 0.25f) else Color.Transparent,
+                                CircleShape
+                            )
+                            .border(
+                                1.dp,
+                                if (isDiagnosticPanelOpen) QuantumCyan else Color.Transparent,
+                                CircleShape
+                            )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Analytics,
+                            contentDescription = "Diagnostic Telemetry Panel",
+                            tint = if (isDiagnosticPanelOpen) QuantumCyan else TextSecondary
+                        )
+                    }
+
                     IconButton(onClick = { onStartCallClick(false) }, modifier = Modifier.testTag("btn_audio_call")) {
                         Icon(Icons.Default.Call, contentDescription = "PQC Audio Call", tint = QuantumCyan)
                     }
@@ -229,6 +289,64 @@ fun ConversationScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            // Real-Time P2P & PQC Diagnostic Telemetry Panel
+            if (isDiagnosticPanelOpen) {
+                PqcDiagnosticPanel(
+                    metrics = diagnosticMetrics,
+                    onCloseClick = onToggleDiagnosticPanel
+                )
+            }
+
+            // In-Chat Message Search Banner Overlay
+            if (isChatSearchActive) {
+                Surface(
+                    color = DarkSlate,
+                    border = BorderStroke(1.dp, QuantumCyan),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .testTag("in_chat_search_banner")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = null,
+                            tint = QuantumCyan,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        OutlinedTextField(
+                            value = inChatSearchQuery,
+                            onValueChange = onUpdateInChatSearchQuery,
+                            placeholder = { Text("Search keywords in chat history...", color = TextMuted, fontSize = 13.sp) },
+                            singleLine = true,
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("input_in_chat_search_query"),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = CardSlate,
+                                unfocusedContainerColor = CardSlate,
+                                focusedBorderColor = QuantumCyan,
+                                unfocusedBorderColor = BorderSlate,
+                                focusedTextColor = TextPrimary,
+                                unfocusedTextColor = TextPrimary
+                            ),
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        IconButton(
+                            onClick = { onToggleChatSearch(false) },
+                            modifier = Modifier.size(32.dp).testTag("btn_close_chat_search")
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = "Close Search", tint = TextMuted)
+                        }
+                    }
+                }
+            }
+
             // Live Walkie-Talkie Received Transmission Banner Alert
             if (!latestPttReceivedAlert.isNullOrBlank()) {
                 Surface(
@@ -354,6 +472,28 @@ fun ConversationScreen(
 
                         Spacer(modifier = Modifier.height(12.dp))
 
+                        // REAL-TIME AUDIO WAVEFORM VISUALIZER
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(38.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(InnerBoxSlate)
+                                .border(0.5.dp, if (isPttTransmitting) AlertCrimson else WarningAmber, RoundedCornerShape(8.dp))
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            RealtimeAudioWaveformVisualizer(
+                                isTransmitting = isPttTransmitting,
+                                isReceiving = !latestPttReceivedAlert.isNullOrBlank(),
+                                barCount = 30,
+                                activeColor = if (isPttTransmitting) AlertCrimson else WarningAmber,
+                                height = 30.dp
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
                         // MAIN PUSH-TO-TALK (PTT) TRANSMISSION BUTTON
                         Surface(
                             color = if (isPttTransmitting) AlertCrimson else WarningAmber,
@@ -426,7 +566,90 @@ fun ConversationScreen(
                 }
             }
 
-            // Security Protocol Notice
+            // Active Phone Hardware Encrypt / Decrypt Operation Banner
+            if (!activeFileOperationName.isNullOrBlank()) {
+                Surface(
+                    color = CardSlate,
+                    border = BorderStroke(1.dp, QuantumCyan),
+                    shape = RoundedCornerShape(0.dp),
+                    modifier = Modifier.fillMaxWidth().testTag("file_operation_banner")
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    color = QuantumCyan,
+                                    strokeWidth = 2.dp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = activeFileOperationName,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = QuantumCyan,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                            Text(
+                                text = "${(fileOperationProgress * 100).toInt()}%",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TacticalEmerald,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+
+                        if (!fileOperationStatus.isNullOrBlank()) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = fileOperationStatus,
+                                fontSize = 10.sp,
+                                color = TextMuted,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+                        LinearProgressIndicator(
+                            progress = { fileOperationProgress },
+                            modifier = Modifier.fillMaxWidth().height(4.dp),
+                            color = QuantumCyan,
+                            trackColor = InnerBoxSlate
+                        )
+                    }
+                }
+            }
+            val displayedMessages = remember(messages, inChatSearchQuery) {
+                if (inChatSearchQuery.isBlank()) {
+                    messages
+                } else {
+                    messages.filter { it.textContent.contains(inChatSearchQuery, ignoreCase = true) }
+                }
+            }
+
+            if (inChatSearchQuery.isNotBlank()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(QuantumCyan.copy(alpha = 0.15f))
+                        .padding(vertical = 4.dp, horizontal = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "🔍 ${displayedMessages.size} matching message(s) for '$inChatSearchQuery'",
+                        fontSize = 11.sp,
+                        color = QuantumCyan,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Monospace
+                    )
+                }
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -452,10 +675,11 @@ fun ConversationScreen(
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(messages, key = { it.id }) { message ->
+                items(displayedMessages, key = { it.id }) { message ->
                     MessageBubbleRow(
                         message = message,
-                        onToggleReaction = onToggleReaction
+                        onToggleReaction = onToggleReaction,
+                        onDecryptFileClick = onDecryptFileClick
                     )
                 }
             }
@@ -501,6 +725,50 @@ fun ConversationScreen(
                         ) {
                             showAttachmentMenu = false
                             onSendFileClick("Cipher_Intel_Map.png", "12.2 MB")
+                        }
+                    }
+                }
+            }
+
+            // Blocked User Banner Alert
+            if (isContactBlocked) {
+                Surface(
+                    color = AlertCrimson.copy(alpha = 0.2f),
+                    border = BorderStroke(1.dp, AlertCrimson),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("blocked_user_banner")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Block,
+                                contentDescription = null,
+                                tint = AlertCrimson,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "🚫 CONTACT BLOCKED • P2P SESSION SUSPENDED",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AlertCrimson,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+
+                        Button(
+                            onClick = { onToggleBlockContact(false) },
+                            colors = ButtonDefaults.buttonColors(containerColor = AlertCrimson, contentColor = ObsidianBlack),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                            modifier = Modifier.testTag("btn_unblock_user_in_chat")
+                        ) {
+                            Text("Unblock", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -776,7 +1044,8 @@ private fun AttachmentOptionItem(
 @Composable
 private fun MessageBubbleRow(
     message: MessageEntity,
-    onToggleReaction: (messageId: String, currentReactions: String, emoji: String) -> Unit = { _, _, _ -> }
+    onToggleReaction: (messageId: String, currentReactions: String, emoji: String) -> Unit = { _, _, _ -> },
+    onDecryptFileClick: (messageId: String, fileName: String) -> Unit = { _, _ -> }
 ) {
     val isMe = message.isFromMe
     val alignment = if (isMe) Alignment.CenterEnd else Alignment.CenterStart
@@ -1011,26 +1280,41 @@ private fun MessageBubbleRow(
                                 }
                             }
                             MessageType.FILE -> {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.InsertDriveFile,
-                                        contentDescription = null,
-                                        tint = WarningAmber,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Column {
-                                        Text(
-                                            text = message.textContent,
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = TextPrimary
+                                Column {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.InsertDriveFile,
+                                            contentDescription = null,
+                                            tint = WarningAmber,
+                                            modifier = Modifier.size(28.dp)
                                         )
-                                        Text(
-                                            text = "${message.mediaSizeFormatted ?: "1.2 MB"} • E2EE Verified",
-                                            fontSize = 11.sp,
-                                            color = TextSecondary
-                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = message.textContent,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = TextPrimary
+                                            )
+                                            Text(
+                                                text = "${message.mediaSizeFormatted ?: "1.2 MB"} • Kyber-1024 Zero-Knowledge E2EE",
+                                                fontSize = 11.sp,
+                                                color = TextSecondary
+                                            )
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(6.dp))
+
+                                    Button(
+                                        onClick = { onDecryptFileClick(message.id, message.textContent) },
+                                        colors = ButtonDefaults.buttonColors(containerColor = QuantumCyan, contentColor = ObsidianBlack),
+                                        shape = RoundedCornerShape(8.dp),
+                                        modifier = Modifier.fillMaxWidth().height(32.dp).testTag("btn_decrypt_file_${message.id}")
+                                    ) {
+                                        Icon(imageVector = Icons.Default.LockOpen, contentDescription = null, modifier = Modifier.size(14.dp))
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(text = "Decrypt & Save on Phone CPU", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
@@ -1141,6 +1425,250 @@ private fun MessageBubbleRow(
                                     fontSize = 12.sp,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                                 )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PqcDiagnosticPanel(
+    metrics: QuantumCryptoEngine.PqcDiagnosticMetrics,
+    onCloseClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        color = CardSlate,
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, QuantumCyan),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .testTag("pqc_diagnostic_panel")
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            // Header Row
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(TacticalEmerald)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "REAL-TIME DIAGNOSTIC TELEMETRY",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = QuantumCyan,
+                        fontFamily = FontFamily.Monospace,
+                        letterSpacing = 1.sp
+                    )
+                }
+
+                IconButton(
+                    onClick = onCloseClick,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close Diagnostic Panel",
+                        tint = TextMuted
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // 3 Card Sections (P2P Latency, Walkie Signal, PQC Session)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                // Card 1: P2P Latency & Connection
+                Surface(
+                    color = InnerBoxSlate,
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, BorderSlate)
+                ) {
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Speed,
+                                    contentDescription = null,
+                                    tint = TacticalEmerald,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "P2P NETWORK LATENCY",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                            Text(
+                                text = "RTT: ${metrics.p2pLatencyMs} ms",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TacticalEmerald,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(text = "Loss: ${metrics.p2pPacketLossPercent}%", fontSize = 10.sp, color = TextSecondary, fontFamily = FontFamily.Monospace)
+                            Text(text = "Bandwidth: ${metrics.p2pBandwidthKbps} Kbps", fontSize = 10.sp, color = TextSecondary, fontFamily = FontFamily.Monospace)
+                            Text(text = "Direct Mesh WSS", fontSize = 10.sp, color = QuantumCyan, fontFamily = FontFamily.Monospace)
+                        }
+                    }
+                }
+
+                // Card 2: Walkie-Talkie Signal Quality
+                Surface(
+                    color = InnerBoxSlate,
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, BorderSlate)
+                ) {
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Sensors,
+                                    contentDescription = null,
+                                    tint = WarningAmber,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "WALKIE-TALKIE SIGNAL",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                            Text(
+                                text = "${metrics.walkieTalkieSignalDbm} dBm (EXCELLENT)",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = WarningAmber,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(text = "Squelch: ${metrics.walkieTalkieSquelchPercent}%", fontSize = 10.sp, color = TextSecondary, fontFamily = FontFamily.Monospace)
+                            Text(text = "SNR: ${metrics.walkieTalkieSnrDb} dB", fontSize = 10.sp, color = TextSecondary, fontFamily = FontFamily.Monospace)
+                            Text(text = metrics.walkieTalkieAudioQuality, fontSize = 10.sp, color = WarningAmber, fontFamily = FontFamily.Monospace)
+                        }
+                    }
+                }
+
+                // Card 3: Post-Quantum Cryptographic Session Details
+                Surface(
+                    color = InnerBoxSlate,
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, BorderSlate)
+                ) {
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Security,
+                                    contentDescription = null,
+                                    tint = QuantumCyan,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = "PQC SESSION DETAILS",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+                            Text(
+                                text = "Re-Key: ${metrics.pqcKeyRekeyCountdownSec}s",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = QuantumCyan,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(text = "KEM:", fontSize = 10.sp, color = TextMuted)
+                                Text(text = metrics.pqcKemAlgorithm, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TacticalEmerald, fontFamily = FontFamily.Monospace)
+                            }
+
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(text = "Signature:", fontSize = 10.sp, color = TextMuted)
+                                Text(text = metrics.pqcDigitalSignature, fontSize = 10.sp, color = TextPrimary, fontFamily = FontFamily.Monospace)
+                            }
+
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(text = "Symmetric Cipher:", fontSize = 10.sp, color = TextMuted)
+                                Text(text = metrics.pqcSymmetricCipher, fontSize = 10.sp, color = TextPrimary, fontFamily = FontFamily.Monospace)
+                            }
+
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(text = "Quantum Entropy:", fontSize = 10.sp, color = TextMuted)
+                                Text(text = "${metrics.pqcQuantumEntropyScore}% (Hardware TRNG)", fontSize = 10.sp, color = QuantumCyan, fontFamily = FontFamily.Monospace)
+                            }
+
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(text = "Session Token:", fontSize = 10.sp, color = TextMuted)
+                                Text(text = "${metrics.pqcSessionId} (Zero-Knowledge)", fontSize = 10.sp, color = WarningAmber, fontFamily = FontFamily.Monospace)
                             }
                         }
                     }

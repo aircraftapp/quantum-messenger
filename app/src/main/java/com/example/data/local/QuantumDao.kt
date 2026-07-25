@@ -40,6 +40,9 @@ interface QuantumDao {
     @Query("UPDATE chats SET wallpaperTheme = :theme WHERE id = :chatId")
     suspend fun updateChatWallpaperTheme(chatId: String, theme: String)
 
+    @Query("UPDATE chats SET draftText = :draftText WHERE id = :chatId")
+    suspend fun updateChatDraft(chatId: String, draftText: String)
+
     // --- MESSAGES ---
     @Query("SELECT * FROM messages WHERE chatId = :chatId ORDER BY timestamp ASC")
     fun getMessagesForChat(chatId: String): Flow<List<MessageEntity>>
@@ -84,6 +87,18 @@ interface QuantumDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertContact(contact: ContactEntity)
+
+    @Query("UPDATE contacts SET tag = :tag WHERE id = :contactId")
+    suspend fun updateContactTag(contactId: String, tag: String)
+
+    @Query("UPDATE contacts SET isBlocked = :isBlocked WHERE id = :contactId")
+    suspend fun updateContactBlockedStatus(contactId: String, isBlocked: Boolean)
+
+    @Query("UPDATE contacts SET presenceStatus = :presenceStatus, isOnline = :isOnline WHERE id = :contactId")
+    suspend fun updateContactPresenceStatus(contactId: String, presenceStatus: String, isOnline: Boolean)
+
+    @Query("SELECT * FROM messages WHERE chatId = :chatId AND textContent LIKE '%' || :query || '%' ORDER BY timestamp ASC")
+    fun searchMessagesInChat(chatId: String, query: String): Flow<List<MessageEntity>>
 
     // --- CLOUD ACCOUNTS ---
     @Query("SELECT * FROM cloud_accounts")

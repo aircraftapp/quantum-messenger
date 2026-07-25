@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.local.ChatEntity
+import com.example.data.local.ContactEntity
 import com.example.data.local.StatusStoryEntity
 import com.example.ui.Screen
 import com.example.ui.theme.*
@@ -35,6 +36,8 @@ import java.util.*
 @Composable
 fun ChatListScreen(
     chats: List<ChatEntity>,
+    contacts: List<ContactEntity> = emptyList(),
+    chatDrafts: Map<String, String> = emptyMap(),
     statusStories: List<StatusStoryEntity> = emptyList(),
     onChatClick: (String) -> Unit,
     onNavigate: (Screen) -> Unit,
@@ -424,6 +427,8 @@ fun ChatListScreen(
                     }
                 }
             } else {
+                val contactsMap = remember(contacts) { contacts.associateBy { it.id } }
+
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -431,8 +436,12 @@ fun ChatListScreen(
                 ) {
                     items(filteredChats, key = { it.id }) { chat ->
                         val isSelected = selectedChatIds.contains(chat.id)
+                        val draftText = chatDrafts[chat.id]
+                        val contactEntity = contactsMap[chat.participantIdsCsv] ?: contacts.find { contact -> contact.name.equals(chat.title, ignoreCase = true) }
                         ChatItemRow(
                             chat = chat,
+                            contactEntity = contactEntity,
+                            draftText = draftText,
                             isSelected = isSelected,
                             isSelectionMode = isSelectionMode,
                             onSelectToggle = {
@@ -518,6 +527,8 @@ private fun FilterChipItem(
 @Composable
 private fun ChatItemRow(
     chat: ChatEntity,
+    contactEntity: ContactEntity? = null,
+    draftText: String? = null,
     isSelected: Boolean = false,
     isSelectionMode: Boolean = false,
     onSelectToggle: () -> Unit = {},
@@ -569,37 +580,66 @@ private fun ChatItemRow(
                 Spacer(modifier = Modifier.width(8.dp))
             }
 
-            // Node Avatar / Group / Channel Icon
+            // Node Avatar / Group / Channel Icon with Connection Status Badge Dot
             Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(CardSlate)
-                    .border(
-                        1.dp,
-                        when {
+                modifier = Modifier.size(52.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(CardSlate)
+                        .border(
+                            1.dp,
+                            when {
+                                chat.isChannel -> TacticalEmerald
+                                chat.isGroup -> WarningAmber
+                                contactEntity?.isBlocked == true -> AlertCrimson
+                                else -> QuantumCyan
+                            },
+                            CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = when {
+                            chat.isChannel -> Icons.Default.Campaign
+                            chat.isGroup -> Icons.Default.Groups
+                            else -> Icons.Default.Person
+                        },
+                        contentDescription = null,
+                        tint = when {
                             chat.isChannel -> TacticalEmerald
                             chat.isGroup -> WarningAmber
+                            contactEntity?.isBlocked == true -> AlertCrimson
                             else -> QuantumCyan
                         },
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = when {
-                        chat.isChannel -> Icons.Default.Campaign
-                        chat.isGroup -> Icons.Default.Groups
-                        else -> Icons.Default.Person
-                    },
-                    contentDescription = null,
-                    tint = when {
-                        chat.isChannel -> TacticalEmerald
-                        chat.isGroup -> WarningAmber
-                        else -> QuantumCyan
-                    },
-                    modifier = Modifier.size(24.dp)
-                )
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                // Connection Status Indicator Dot (Online, Away, Offline, Blocked)
+                if (!chat.isGroup && !chat.isChannel) {
+                    val status = contactEntity?.presenceStatus ?: if (contactEntity?.isOnline == true) "ONLINE" else "OFFLINE"
+                    val isBlocked = contactEntity?.isBlocked == true
+
+                    val dotColor = when {
+                        isBlocked -> AlertCrimson
+                        status.equals("ONLINE", ignoreCase = true) -> TacticalEmerald
+                        status.equals("AWAY", ignoreCase = true) -> WarningAmber
+                        else -> TextMuted
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .size(13.dp)
+                            .align(Alignment.BottomEnd)
+                            .clip(CircleShape)
+                            .background(dotColor)
+                            .border(2.dp, DarkSlate, CircleShape)
+                            .testTag("status_dot_${chat.id}")
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -636,6 +676,21 @@ private fun ChatItemRow(
                                 )
                             }
                         }
+                        if (contactEntity?.isBlocked == true) {
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Surface(
+                                color = AlertCrimson.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                Text(
+                                    text = "🚫 BLOCKED",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = AlertCrimson,
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
                     }
                     Text(
                         text = timeFormatted,
@@ -649,14 +704,27 @@ private fun ChatItemRow(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = chat.lastMessage,
-                        fontSize = 13.sp,
-                        color = TextSecondary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
+                    val effectiveDraft = if (!draftText.isNullOrBlank()) draftText else chat.draftText
+                    if (effectiveDraft.isNotBlank()) {
+                        Text(
+                            text = "✍️ Draft: $effectiveDraft",
+                            fontSize = 13.sp,
+                            color = WarningAmber,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                    } else {
+                        Text(
+                            text = chat.lastMessage,
+                            fontSize = 13.sp,
+                            color = TextSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
 
                     if (chat.ephemeralSettingSeconds > 0L) {
                         Spacer(modifier = Modifier.width(6.dp))

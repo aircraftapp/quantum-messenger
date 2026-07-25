@@ -38,6 +38,19 @@ class MainActivity : FragmentActivity() {
 fun QuantumMessengerApp(
     viewModel: QuantumViewModel = viewModel()
 ) {
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_PAUSE || event == androidx.lifecycle.Lifecycle.Event.ON_STOP) {
+                viewModel.saveCurrentDraftToRoomDb()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     val isLocked by viewModel.isLocked.collectAsStateWithLifecycle()
     val pinInput by viewModel.pinInput.collectAsStateWithLifecycle()
     val pinError by viewModel.pinError.collectAsStateWithLifecycle()
@@ -73,6 +86,8 @@ fun QuantumMessengerApp(
 
     val showChatSettingsDialog by viewModel.showChatSettingsDialog.collectAsStateWithLifecycle()
     val showQrScannerModal by viewModel.showQrScannerModal.collectAsStateWithLifecycle()
+    val isReadReceiptsEnabled by viewModel.isReadReceiptsEnabled.collectAsStateWithLifecycle()
+    val groupNotificationSounds by viewModel.groupNotificationSounds.collectAsStateWithLifecycle()
     val showCreateStoryDialog by viewModel.showCreateStoryDialog.collectAsStateWithLifecycle()
     val showStoryViewerModal by viewModel.showStoryViewerModal.collectAsStateWithLifecycle()
     val showBroadcastListDialog by viewModel.showBroadcastListDialog.collectAsStateWithLifecycle()
@@ -90,6 +105,22 @@ fun QuantumMessengerApp(
     val isPttTransmitting by viewModel.isPttTransmitting.collectAsStateWithLifecycle()
     val pttTransmissionDuration by viewModel.pttTransmissionDuration.collectAsStateWithLifecycle()
     val latestPttReceivedAlert by viewModel.latestPttReceivedAlert.collectAsStateWithLifecycle()
+
+    val sharedFolders by viewModel.sharedFolders.collectAsStateWithLifecycle()
+    val activeFileOperationName by viewModel.activeFileOperationName.collectAsStateWithLifecycle()
+    val fileOperationProgress by viewModel.fileOperationProgress.collectAsStateWithLifecycle()
+    val fileOperationStatus by viewModel.fileOperationStatus.collectAsStateWithLifecycle()
+
+    val diagnosticMetrics by viewModel.diagnosticMetrics.collectAsStateWithLifecycle()
+    val isDiagnosticPanelOpen by viewModel.isDiagnosticPanelOpen.collectAsStateWithLifecycle()
+
+    val p2pDataUsageMetrics by viewModel.p2pDataUsageMetrics.collectAsStateWithLifecycle()
+    val globalDefaultEphemeralSeconds by viewModel.globalDefaultEphemeralSeconds.collectAsStateWithLifecycle()
+
+    val chatDrafts by viewModel.chatDrafts.collectAsStateWithLifecycle()
+    val selectedContactTag by viewModel.selectedContactTag.collectAsStateWithLifecycle()
+    val isChatSearchActive by viewModel.isChatSearchActive.collectAsStateWithLifecycle()
+    val inChatSearchQuery by viewModel.inChatSearchQuery.collectAsStateWithLifecycle()
 
     val setupStep by viewModel.setupStep.collectAsStateWithLifecycle()
     val setupNodeName by viewModel.setupNodeName.collectAsStateWithLifecycle()
@@ -143,6 +174,8 @@ fun QuantumMessengerApp(
             Screen.CHAT_LIST -> {
                 ChatListScreen(
                     chats = chats,
+                    contacts = contacts,
+                    chatDrafts = chatDrafts,
                     statusStories = statusStories,
                     onChatClick = { chatId -> viewModel.openConversation(chatId) },
                     onNavigate = { screen -> viewModel.navigateToScreen(screen) },
@@ -165,17 +198,25 @@ fun QuantumMessengerApp(
                 ContactsDirectoryScreen(
                     contacts = searchedContacts,
                     searchQueryParam = contactSearchQuery,
+                    selectedTag = selectedContactTag,
                     onSearchQueryChange = { query -> viewModel.onContactSearchQueryChanged(query) },
+                    onSelectTag = { tag -> viewModel.selectContactTag(tag) },
+                    onUpdateContactTag = { contactId, newTag -> viewModel.updateContactTag(contactId, newTag) },
                     onBackClick = { viewModel.navigateToScreen(Screen.CHAT_LIST) },
                     onContactSelect = { contact -> viewModel.openChatForContact(contact) },
                     onAddContactSubmit = { name, phone, key -> viewModel.pairNewNodeWithPhone(name, phone, key) },
                     onSyncPhonebookClick = { viewModel.importPhonebookContacts() },
                     onCreateGroupClick = { viewModel.toggleCreateGroupDialog(true) },
-                    onCallContactClick = { contact, isVideo -> viewModel.startCallForContact(contact, isVideo) }
+                    onCallContactClick = { contact, isVideo -> viewModel.startCallForContact(contact, isVideo) },
+                    onOpenQrScanner = { viewModel.toggleQrScannerModal(true) },
+                    onToggleBlockContact = { contactId, isBlocked -> viewModel.toggleContactBlockStatus(contactId, isBlocked) }
                 )
             }
 
             Screen.CONVERSATION -> {
+                val activeContact = contacts.find { it.id == activeChat?.participantIdsCsv || it.name.equals(activeChat?.title, ignoreCase = true) }
+                val isContactBlocked = activeContact?.isBlocked ?: false
+
                 ConversationScreen(
                     chat = activeChat,
                     messages = messages,
@@ -188,12 +229,20 @@ fun QuantumMessengerApp(
                     isPttTransmitting = isPttTransmitting,
                     pttTransmissionDuration = pttTransmissionDuration,
                     latestPttReceivedAlert = latestPttReceivedAlert,
+                    activeFileOperationName = activeFileOperationName,
+                    fileOperationProgress = fileOperationProgress,
+                    fileOperationStatus = fileOperationStatus,
+                    diagnosticMetrics = diagnosticMetrics,
+                    isDiagnosticPanelOpen = isDiagnosticPanelOpen,
+                    isChatSearchActive = isChatSearchActive,
+                    inChatSearchQuery = inChatSearchQuery,
                     onBackClick = { viewModel.navigateToScreen(Screen.CHAT_LIST) },
                     onMessageInputChange = { text -> viewModel.updateMessageInput(text) },
                     onSendMessageClick = { viewModel.sendTextMessage() },
                     onToggleAudioRecording = { viewModel.toggleAudioRecording() },
                     onSendVideoNoteClick = { viewModel.sendVideoNote() },
                     onSendFileClick = { fileName, fileSize -> viewModel.sendEncryptedFile(fileName, fileSize) },
+                    onDecryptFileClick = { msgId, fName -> viewModel.decryptAndDownloadFileLocally(msgId, fName) },
                     onEphemeralTimerClick = { viewModel.toggleEphemeralDialog(true) },
                     onOpenSettingsClick = { viewModel.toggleChatSettingsDialog(true) },
                     onToggleReaction = { msgId, curReactions, emoji -> viewModel.toggleMessageReaction(msgId, curReactions, emoji) },
@@ -203,7 +252,13 @@ fun QuantumMessengerApp(
                     onStartPttTransmission = { viewModel.startPttTransmission() },
                     onStopPttTransmission = { viewModel.stopPttTransmissionAndSend() },
                     onSendPttQuickBurst = { burst -> viewModel.sendPttVoiceBurst(viewModel.activeChatId.value ?: "", selectedPttChannel, 2, burst) },
-                    onDismissPttAlert = { viewModel.dismissPttAlert() }
+                    onDismissPttAlert = { viewModel.dismissPttAlert() },
+                    onToggleDiagnosticPanel = { viewModel.toggleDiagnosticPanel() },
+                    onToggleChatSearch = { active -> viewModel.toggleChatSearch(active) },
+                    onUpdateInChatSearchQuery = { query -> viewModel.updateInChatSearchQuery(query) },
+                    onExportChatHistoryClick = { passphrase -> viewModel.exportChatHistory(activeChat?.id ?: "", passphrase) },
+                    isContactBlocked = isContactBlocked,
+                    onToggleBlockContact = { isBlocked -> activeContact?.let { viewModel.toggleContactBlockStatus(it.id, isBlocked) } }
                 )
             }
 
@@ -222,12 +277,15 @@ fun QuantumMessengerApp(
                     cloudAccounts = cloudAccounts,
                     localBackupFiles = localBackupFiles,
                     statusMessage = backupStatusMessage,
+                    sharedFolders = sharedFolders,
                     onBackClick = { viewModel.navigateToScreen(Screen.CHAT_LIST) },
                     onSyncAccountClick = { account -> viewModel.syncAccount(account) },
                     onDeleteAccountClick = { account -> viewModel.removeCloudAccount(account) },
                     onExportZipClick = { viewModel.toggleExportBackupDialog(true) },
                     onImportZipClick = { viewModel.toggleImportBackupDialog(true) },
-                    onAddCloudAccountClick = { name, type, path -> viewModel.addCloudAccount(name, type, path) }
+                    onAddCloudAccountClick = { name, type, path -> viewModel.addCloudAccount(name, type, path) },
+                    onCreateSharedFolder = { folderName, peer -> viewModel.createSharedFolder(folderName, peer) },
+                    onSyncSharedFolder = { folderId -> viewModel.syncSharedFolderNow(folderId) }
                 )
             }
 
@@ -238,9 +296,14 @@ fun QuantumMessengerApp(
                     p2pServerStatus = p2pServerStatus,
                     p2pServerInfo = p2pServerInfo,
                     p2pActivePeers = p2pActivePeers,
+                    dataUsageMetrics = p2pDataUsageMetrics,
+                    globalEphemeralTtl = globalDefaultEphemeralSeconds,
                     onToggleP2pServer = { enable -> viewModel.toggleP2pServer(enable) },
                     onConnectToP2pPeer = { peerAddr -> viewModel.connectToP2pPeer(peerAddr) },
                     onEnqueueTestJob = { type -> viewModel.enqueueMediaTranscodeAndEncryption("sample_media_uri", type) },
+                    onToggleBatterySaver = { enable -> viewModel.toggleBatterySaverMode(enable) },
+                    onResetDataUsage = { viewModel.resetDataUsageStats() },
+                    onSetGlobalEphemeralTtl = { seconds -> viewModel.setGlobalDefaultEphemeralTtl(seconds) },
                     onBackClick = { viewModel.navigateToScreen(Screen.CHAT_LIST) }
                 )
             }
@@ -286,11 +349,21 @@ fun QuantumMessengerApp(
         }
 
         if (showChatSettingsDialog && activeChat != null) {
+            val activeContact = contacts.find { it.id == activeChat?.participantIdsCsv || it.name.equals(activeChat?.title, ignoreCase = true) }
+            val isContactBlocked = activeContact?.isBlocked ?: false
+
             ChatSettingsDialog(
                 chat = activeChat!!,
+                isContactBlocked = isContactBlocked,
+                isReadReceiptsEnabled = isReadReceiptsEnabled,
+                groupNotificationSounds = groupNotificationSounds,
                 onDismiss = { viewModel.toggleChatSettingsDialog(false) },
                 onEphemeralTimerChange = { seconds -> viewModel.setEphemeralTimerForActiveChat(seconds) },
-                onWallpaperThemeChange = { theme -> viewModel.setWallpaperThemeForActiveChat(theme) }
+                onWallpaperThemeChange = { theme -> viewModel.setWallpaperThemeForActiveChat(theme) },
+                onExportChatHistory = { passphrase -> viewModel.exportChatHistory(activeChat?.id ?: "", passphrase) },
+                onToggleBlockContact = { isBlocked -> activeContact?.let { viewModel.toggleContactBlockStatus(it.id, isBlocked) } },
+                onToggleReadReceipts = { enabled -> viewModel.toggleReadReceipts(enabled) },
+                onUpdateGroupNotificationSound = { groupName, soundName -> viewModel.updateGroupNotificationSound(groupName, soundName) }
             )
         }
 

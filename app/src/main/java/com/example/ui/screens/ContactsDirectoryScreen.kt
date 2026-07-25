@@ -30,25 +30,41 @@ import com.example.ui.theme.*
 fun ContactsDirectoryScreen(
     contacts: List<ContactEntity>,
     searchQueryParam: String = "",
+    selectedTag: String = "All",
     onSearchQueryChange: (String) -> Unit = {},
+    onSelectTag: (String) -> Unit = {},
+    onUpdateContactTag: (contactId: String, newTag: String) -> Unit = { _, _ -> },
     onBackClick: () -> Unit,
     onContactSelect: (ContactEntity) -> Unit,
     onAddContactSubmit: (name: String, phoneNumber: String, publicKey: String) -> Unit,
     onSyncPhonebookClick: () -> Unit,
     onCreateGroupClick: () -> Unit,
-    onCallContactClick: (ContactEntity, Boolean) -> Unit
+    onCallContactClick: (ContactEntity, Boolean) -> Unit,
+    onOpenQrScanner: () -> Unit = {},
+    onToggleBlockContact: (contactId: String, isBlocked: Boolean) -> Unit = { _, _ -> }
 ) {
     var searchQuery by remember(searchQueryParam) { mutableStateOf(searchQueryParam) }
     var showAddContactModal by remember { mutableStateOf(false) }
+    var editingTagContact by remember { mutableStateOf<ContactEntity?>(null) }
+
+    val tagsList = listOf("All", "Work", "Family", "Friends", "VIP", "Tactical", "Blocked")
 
     val filteredContacts = contacts.filter { contact ->
-        if (searchQuery.isBlank()) true else {
+        val matchesQuery = if (searchQuery.isBlank()) true else {
             contact.name.contains(searchQuery, ignoreCase = true) ||
                     contact.phoneNumber.contains(searchQuery, ignoreCase = true) ||
                     contact.id.contains(searchQuery, ignoreCase = true) ||
-                    (searchQuery.equals("online", ignoreCase = true) && contact.isOnline) ||
-                    (searchQuery.equals("offline", ignoreCase = true) && !contact.isOnline)
+                    (searchQuery.equals("online", ignoreCase = true) && contact.presenceStatus == "ONLINE") ||
+                    (searchQuery.equals("away", ignoreCase = true) && contact.presenceStatus == "AWAY") ||
+                    (searchQuery.equals("offline", ignoreCase = true) && contact.presenceStatus == "OFFLINE") ||
+                    (searchQuery.equals("blocked", ignoreCase = true) && contact.isBlocked)
         }
+        val matchesTag = when {
+            selectedTag.equals("All", ignoreCase = true) -> true
+            selectedTag.equals("Blocked", ignoreCase = true) -> contact.isBlocked
+            else -> contact.tag.equals(selectedTag, ignoreCase = true)
+        }
+        matchesQuery && matchesTag
     }
 
     Scaffold(
@@ -83,6 +99,16 @@ fun ContactsDirectoryScreen(
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = onOpenQrScanner,
+                        modifier = Modifier.testTag("btn_qr_scanner_contacts_top")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.QrCodeScanner,
+                            contentDescription = "PQC Key Exchange QR Scanner",
+                            tint = QuantumCyan
+                        )
+                    }
                     IconButton(
                         onClick = { showAddContactModal = true },
                         modifier = Modifier.testTag("btn_add_contact_top")
@@ -142,6 +168,36 @@ fun ContactsDirectoryScreen(
                 singleLine = true
             )
 
+            // Contact Tag Category Filter Chips Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                tagsList.forEach { tag ->
+                    val isSelected = selectedTag.equals(tag, ignoreCase = true)
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(if (isSelected) QuantumCyan else DarkSlate)
+                            .border(1.dp, if (isSelected) QuantumCyan else BorderSlate, RoundedCornerShape(16.dp))
+                            .clickable { onSelectTag(tag) }
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                            .testTag("tag_chip_$tag")
+                    ) {
+                        Text(
+                            text = if (tag == "All") "🏷️ All" else "#$tag",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSelected) ObsidianBlack else TextPrimary
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
             // Top Action Cards (WhatsApp / Telegram style)
             Column(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
@@ -155,6 +211,16 @@ fun ContactsDirectoryScreen(
                     iconColor = QuantumCyan,
                     onClick = { showAddContactModal = true },
                     tag = "tile_new_contact"
+                )
+
+                // Action 2: QR Code PQC Key Exchange Scanner
+                ContactActionTile(
+                    icon = Icons.Default.QrCodeScanner,
+                    title = "Scan QR Code Key Exchange",
+                    subtitle = "Instant PQC Kyber-1024 public key scan & pair",
+                    iconColor = QuantumCyan,
+                    onClick = onOpenQrScanner,
+                    tag = "tile_qr_scanner_contact"
                 )
 
                 // Action 2: New Group
@@ -231,13 +297,66 @@ fun ContactsDirectoryScreen(
                             contact = contact,
                             onMessageClick = { onContactSelect(contact) },
                             onAudioCallClick = { onCallContactClick(contact, false) },
-                            onVideoCallClick = { onCallContactClick(contact, true) }
+                            onVideoCallClick = { onCallContactClick(contact, true) },
+                            onEditTagClick = { editingTagContact = contact },
+                            onToggleBlockClick = { onToggleBlockContact(contact.id, !contact.isBlocked) }
                         )
                         HorizontalDivider(color = BorderDark, thickness = 0.5.dp)
                     }
                 }
             }
         }
+    }
+
+    // Modal Dialog: Edit Contact Tag Category
+    editingTagContact?.let { contactToEdit ->
+        AlertDialog(
+            onDismissRequest = { editingTagContact = null },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Label, contentDescription = null, tint = QuantumCyan)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Tag '${contactToEdit.name}'", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Select a group tag for organizing this contact:", fontSize = 12.sp, color = TextMuted)
+                    val availableTags = listOf("Work", "Family", "Friends", "VIP", "Tactical")
+                    availableTags.forEach { tagOption ->
+                        val isSelected = contactToEdit.tag.equals(tagOption, ignoreCase = true)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (isSelected) QuantumCyan.copy(alpha = 0.2f) else InnerBoxSlate)
+                                .border(1.dp, if (isSelected) QuantumCyan else BorderSlate, RoundedCornerShape(8.dp))
+                                .clickable {
+                                    onUpdateContactTag(contactToEdit.id, tagOption)
+                                    editingTagContact = null
+                                }
+                                .padding(horizontal = 12.dp, vertical = 10.dp)
+                                .testTag("select_tag_option_$tagOption"),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text("#$tagOption", fontSize = 13.sp, color = TextPrimary, fontWeight = FontWeight.Bold)
+                            if (isSelected) {
+                                Icon(Icons.Default.Check, contentDescription = null, tint = QuantumCyan, modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { editingTagContact = null }) {
+                    Text("Cancel", color = TextSecondary)
+                }
+            },
+            containerColor = DarkSlate,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 
     // Modal Dialog: Add New Contact by Phone Number or Name
@@ -308,7 +427,9 @@ private fun ContactListItem(
     contact: ContactEntity,
     onMessageClick: () -> Unit,
     onAudioCallClick: () -> Unit,
-    onVideoCallClick: () -> Unit
+    onVideoCallClick: () -> Unit,
+    onEditTagClick: () -> Unit = {},
+    onToggleBlockClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -318,46 +439,94 @@ private fun ContactListItem(
             .testTag("contact_item_${contact.id}"),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Avatar Circle with Status Indicator
+        // Avatar Circle with Connection Status Badge Dot
         Box {
             Box(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
                     .background(CardSlate)
-                    .border(1.dp, BorderSlate, CircleShape),
+                    .border(
+                        1.dp,
+                        if (contact.isBlocked) AlertCrimson else BorderSlate,
+                        CircleShape
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = contact.name.take(1).uppercase(),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = QuantumCyan
+                    color = if (contact.isBlocked) AlertCrimson else QuantumCyan
                 )
             }
 
-            if (contact.isOnline) {
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .clip(CircleShape)
-                        .background(TacticalEmerald)
-                        .border(2.dp, ObsidianBlack, CircleShape)
-                        .align(Alignment.BottomEnd)
-                )
+            val statusColor = when {
+                contact.isBlocked -> AlertCrimson
+                contact.presenceStatus.equals("ONLINE", ignoreCase = true) || (contact.presenceStatus.isBlank() && contact.isOnline) -> TacticalEmerald
+                contact.presenceStatus.equals("AWAY", ignoreCase = true) -> WarningAmber
+                else -> TextMuted
             }
+
+            Box(
+                modifier = Modifier
+                    .size(12.dp)
+                    .clip(CircleShape)
+                    .background(statusColor)
+                    .border(2.dp, ObsidianBlack, CircleShape)
+                    .align(Alignment.BottomEnd)
+                    .testTag("status_dot_contact_${contact.id}")
+            )
         }
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Name, Phone Number, Fingerprint
+        // Name, Phone Number, Fingerprint, Tag Badge, Status Label
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = contact.name,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = TextPrimary
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = contact.name,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                // Tag Badge
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(DarkSlate)
+                        .border(0.5.dp, QuantumCyan, RoundedCornerShape(6.dp))
+                        .clickable { onEditTagClick() }
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                        .testTag("tag_badge_${contact.id}")
+                ) {
+                    Text(
+                        text = "#${contact.tag}",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = QuantumCyan
+                    )
+                }
+
+                if (contact.isBlocked) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(AlertCrimson.copy(alpha = 0.2f))
+                            .border(0.5.dp, AlertCrimson, RoundedCornerShape(6.dp))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "🚫 BLOCKED",
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AlertCrimson
+                        )
+                    }
+                }
+            }
 
             if (contact.phoneNumber.isNotBlank()) {
                 Text(
@@ -372,6 +541,27 @@ private fun ContactListItem(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(top = 2.dp)
             ) {
+                val statusText = when {
+                    contact.isBlocked -> "🚫 Blocked"
+                    contact.presenceStatus.equals("ONLINE", ignoreCase = true) || (contact.presenceStatus.isBlank() && contact.isOnline) -> "🟢 Online"
+                    contact.presenceStatus.equals("AWAY", ignoreCase = true) -> "🟡 Away"
+                    else -> "⚪ Offline"
+                }
+
+                Text(
+                    text = statusText,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = when {
+                        contact.isBlocked -> AlertCrimson
+                        statusText.contains("Online") -> TacticalEmerald
+                        statusText.contains("Away") -> WarningAmber
+                        else -> TextMuted
+                    }
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
                 Icon(
                     imageVector = Icons.Default.Key,
                     contentDescription = null,
@@ -388,7 +578,7 @@ private fun ContactListItem(
             }
         }
 
-        // Action Buttons: Message, Audio Call, Video Call
+        // Action Buttons: Message, Audio Call, Video Call, Block
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             IconButton(
                 onClick = onAudioCallClick,
@@ -428,6 +618,20 @@ private fun ContactListItem(
                     imageVector = Icons.Default.Chat,
                     contentDescription = "Send Message",
                     tint = TextPrimary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            IconButton(
+                onClick = onToggleBlockClick,
+                modifier = Modifier
+                    .size(36.dp)
+                    .testTag("btn_contact_block_${contact.id}")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Block,
+                    contentDescription = if (contact.isBlocked) "Unblock Contact" else "Block Contact",
+                    tint = if (contact.isBlocked) AlertCrimson else TextMuted,
                     modifier = Modifier.size(18.dp)
                 )
             }

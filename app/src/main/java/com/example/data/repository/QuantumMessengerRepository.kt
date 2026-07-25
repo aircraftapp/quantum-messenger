@@ -463,6 +463,18 @@ class QuantumMessengerRepository(private val dao: QuantumDao) {
         dao.deleteMessagesForChats(chatIds)
     }
 
+    suspend fun saveChatDraft(chatId: String, draftText: String) {
+        dao.updateChatDraft(chatId, draftText)
+    }
+
+    suspend fun setContactBlocked(contactId: String, isBlocked: Boolean) {
+        dao.updateContactBlockedStatus(contactId, isBlocked)
+    }
+
+    suspend fun setContactPresence(contactId: String, presenceStatus: String, isOnline: Boolean) {
+        dao.updateContactPresenceStatus(contactId, presenceStatus, isOnline)
+    }
+
     suspend fun receiveDirectP2pMessage(
         senderNodeId: String,
         senderName: String,
@@ -470,6 +482,13 @@ class QuantumMessengerRepository(private val dao: QuantumDao) {
         encryptedPayload: String,
         pqcPublicKey: String? = null
     ) {
+        val allContacts = dao.getAllContactsDirect()
+        val senderContact = allContacts.find { it.id == senderNodeId || it.name.equals(senderName, ignoreCase = true) }
+        if (senderContact != null && senderContact.isBlocked) {
+            // Drop P2P message from blocked sender
+            return
+        }
+
         val decryptedText = QuantumCryptoEngine.decryptPostQuantum(encryptedPayload)
         val now = System.currentTimeMillis()
 
@@ -530,5 +549,42 @@ class QuantumMessengerRepository(private val dao: QuantumDao) {
             lastMessageTime = now
         )
         dao.updateChat(updatedChat)
+    }
+
+    suspend fun updateContactTag(contactId: String, newTag: String) {
+        dao.updateContactTag(contactId, newTag)
+    }
+
+    fun searchMessagesInChat(chatId: String, query: String): Flow<List<MessageEntity>> {
+        return dao.searchMessagesInChat(chatId, query)
+    }
+
+    suspend fun exportSingleChatEncrypted(chatId: String, passphrase: String): String {
+        val chat = dao.getChatById(chatId).first() ?: return ""
+        val messages = dao.getMessagesForChat(chatId).first()
+        val jsonStringBuilder = StringBuilder()
+        jsonStringBuilder.append("{\"chatId\":\"${chat.id}\",\"title\":\"${chat.title}\",\"exportedAt\":${System.currentTimeMillis()},\"messages\":[")
+        messages.forEachIndexed { index, msg ->
+            jsonStringBuilder.append("{\"id\":\"${msg.id}\",\"sender\":\"${msg.senderName}\",\"text\":\"${msg.textContent.replace("\"", "\\\"")}\",\"timestamp\":${msg.timestamp}}")
+            if (index < messages.size - 1) jsonStringBuilder.append(",")
+        }
+        jsonStringBuilder.append("]}")
+        val rawJson = jsonStringBuilder.toString()
+        val encryptedPayload = QuantumCryptoEngine.encryptPostQuantum(rawJson, "PASSPHRASE::$passphrase")
+        
+        // Record backup in cloud account table or return path
+        val backupAcc = CloudAccountEntity(
+            id = "CHAT_EXPORT_" + UUID.randomUUID().toString().take(6),
+            providerName = "Encrypted Chat Backup (${chat.title})",
+            providerType = CloudProviderType.DOWNLOADABLE_ZIP,
+            accountEmailOrPath = "/storage/emulated/0/Download/Quantum_Chat_${chat.id}.qchat",
+            isConnected = true,
+            isAutoSyncEnabled = false,
+            lastSyncTimestamp = System.currentTimeMillis(),
+            totalBackupsCount = 1,
+            storageUsedFormatted = "${(rawJson.length / 1024.0).toString().take(4)} KB"
+        )
+        dao.insertCloudAccount(backupAcc)
+        return backupAcc.accountEmailOrPath
     }
 }

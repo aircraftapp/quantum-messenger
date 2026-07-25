@@ -1,13 +1,21 @@
 package com.example.data.local
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 enum class MessageType {
     TEXT, VOICE, VIDEO, FILE, WALKIE_TALKIE
 }
 
-@Entity(tableName = "messages")
+@Entity(
+    tableName = "messages",
+    indices = [
+        Index(value = ["chatId"]),
+        Index(value = ["textContent"]),
+        Index(value = ["chatId", "textContent"])
+    ]
+)
 data class MessageEntity(
     @PrimaryKey
     val id: String,

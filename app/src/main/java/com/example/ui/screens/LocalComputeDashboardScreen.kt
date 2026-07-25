@@ -1,7 +1,9 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -19,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.crypto.LocalComputeMetrics
+import com.example.crypto.QuantumCryptoEngine
 import com.example.network.p2p.P2pPeerNode
 import com.example.network.p2p.P2pServerStatus
 import com.example.ui.MediaJobUiState
@@ -32,9 +35,14 @@ fun LocalComputeDashboardScreen(
     p2pServerStatus: P2pServerStatus = P2pServerStatus.LISTENING,
     p2pServerInfo: String = "Listening on ws://127.0.0.1:8888",
     p2pActivePeers: List<P2pPeerNode> = emptyList(),
+    dataUsageMetrics: QuantumCryptoEngine.P2pDataUsageMetrics = QuantumCryptoEngine.P2pDataUsageMetrics(),
+    globalEphemeralTtl: Long = 30L,
     onToggleP2pServer: (Boolean) -> Unit = {},
     onConnectToP2pPeer: (String) -> Unit = {},
     onEnqueueTestJob: (mediaType: String) -> Unit = {},
+    onToggleBatterySaver: (Boolean) -> Unit = {},
+    onResetDataUsage: () -> Unit = {},
+    onSetGlobalEphemeralTtl: (Long) -> Unit = {},
     onBackClick: () -> Unit
 ) {
     var peerConnectInput by remember { mutableStateOf("") }
@@ -528,6 +536,326 @@ fun LocalComputeDashboardScreen(
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(text = job.statusText, fontSize = 10.sp, color = TextMuted)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // --- FEATURE 1: P2P BANDWIDTH CONSUMPTION DASHBOARD ---
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("p2p_data_usage_dashboard_card"),
+                    colors = CardDefaults.cardColors(containerColor = DarkSlate),
+                    shape = RoundedCornerShape(16.dp),
+                    border = CardDefaults.outlinedCardBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(QuantumCyan))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.DataUsage,
+                                    contentDescription = null,
+                                    tint = QuantumCyan,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "P2P NETWORK BANDWIDTH DASHBOARD",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = QuantumCyan,
+                                    letterSpacing = 1.sp,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+
+                            Button(
+                                onClick = onResetDataUsage,
+                                colors = ButtonDefaults.buttonColors(containerColor = InnerBoxSlate, contentColor = TextSecondary),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                modifier = Modifier
+                                    .height(28.dp)
+                                    .testTag("btn_reset_data_usage")
+                            ) {
+                                Text("Reset Stats", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // Usage Meter Bar
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.Bottom
+                        ) {
+                            Column {
+                                Text(text = "Total Bandwidth Consumed", fontSize = 11.sp, color = TextSecondary)
+                                Text(
+                                    text = "${dataUsageMetrics.totalMbConsumed} MB",
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = TacticalEmerald,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
+
+                            Text(
+                                text = "Cap: ${dataUsageMetrics.dailyBandwidthLimitMb.toInt()} MB/day",
+                                fontSize = 11.sp,
+                                color = TextMuted,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        val usageProgress = (dataUsageMetrics.totalMbConsumed / dataUsageMetrics.dailyBandwidthLimitMb).coerceIn(0f, 1f)
+                        LinearProgressIndicator(
+                            progress = { usageProgress },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp)),
+                            color = TacticalEmerald,
+                            trackColor = BorderSlate
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Category Breakdown Grid
+                        Text(text = "TRAFFIC CATEGORY BREAKDOWN", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted, letterSpacing = 1.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Sync, contentDescription = null, tint = QuantumCyan, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(text = "P2P State Synchronization", fontSize = 11.sp, color = TextPrimary)
+                                }
+                                Text(text = "${dataUsageMetrics.stateSyncMb} MB", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = QuantumCyan, fontFamily = FontFamily.Monospace)
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.InsertDriveFile, contentDescription = null, tint = WarningAmber, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(text = "Encrypted File Transfers", fontSize = 11.sp, color = TextPrimary)
+                                }
+                                Text(text = "${dataUsageMetrics.fileTransferMb} MB", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = WarningAmber, fontFamily = FontFamily.Monospace)
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.VolumeUp, contentDescription = null, tint = TacticalEmerald, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(text = "Walkie-Talkie Audio Streams", fontSize = 11.sp, color = TextPrimary)
+                                }
+                                Text(text = "${dataUsageMetrics.walkieTalkieAudioMb} MB", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TacticalEmerald, fontFamily = FontFamily.Monospace)
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.CloudSync, contentDescription = null, tint = TextMuted, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(text = "Off-Grid Cloud & Backups", fontSize = 11.sp, color = TextPrimary)
+                                }
+                                Text(text = "${dataUsageMetrics.cloudBackupMb} MB", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextMuted, fontFamily = FontFamily.Monospace)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // --- FEATURE 2: BATTERY-SAVER MODE FOR P2P BACKGROUND SYNC ---
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("p2p_battery_saver_card"),
+                    colors = CardDefaults.cardColors(containerColor = DarkSlate),
+                    shape = RoundedCornerShape(16.dp),
+                    border = CardDefaults.outlinedCardBorder().copy(
+                        brush = androidx.compose.ui.graphics.SolidColor(
+                            if (dataUsageMetrics.isBatterySaverEnabled) WarningAmber else BorderSlate
+                        )
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.BatterySaver,
+                                    contentDescription = null,
+                                    tint = if (dataUsageMetrics.isBatterySaverEnabled) WarningAmber else TacticalEmerald,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(
+                                        text = "LOW-POWER P2P BACKGROUND SYNC",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary,
+                                        letterSpacing = 1.sp,
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                    Text(
+                                        text = if (dataUsageMetrics.isBatterySaverEnabled) "Interval: 60s (Low Power)" else "Interval: 5s (High Performance)",
+                                        fontSize = 10.sp,
+                                        color = if (dataUsageMetrics.isBatterySaverEnabled) WarningAmber else TacticalEmerald,
+                                        fontFamily = FontFamily.Monospace
+                                    )
+                                }
+                            }
+
+                            Switch(
+                                checked = dataUsageMetrics.isBatterySaverEnabled,
+                                onCheckedChange = onToggleBatterySaver,
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = WarningAmber,
+                                    checkedTrackColor = WarningAmber.copy(alpha = 0.3f),
+                                    uncheckedThumbColor = TacticalEmerald,
+                                    uncheckedTrackColor = InnerBoxSlate
+                                ),
+                                modifier = Modifier.testTag("btn_toggle_battery_saver")
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Surface(
+                            color = InnerBoxSlate,
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, BorderSlate)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = if (dataUsageMetrics.isBatterySaverEnabled) Icons.Default.BatteryChargingFull else Icons.Default.Bolt,
+                                    contentDescription = null,
+                                    tint = if (dataUsageMetrics.isBatterySaverEnabled) WarningAmber else TacticalEmerald,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text = if (dataUsageMetrics.isBatterySaverEnabled)
+                                        "🔋 Battery Saver Active: Reduced background peer discovery pings and heartbeat check-ins to 60-second intervals to preserve CPU battery life during low-power state."
+                                    else
+                                        "⚡ High Performance Mesh: Active 5-second peer heartbeat pings for instantaneous off-grid connections and real-time walkie-talkie audio response.",
+                                    fontSize = 11.sp,
+                                    color = TextSecondary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // --- FEATURE 3: CONFIGURATION SETTING FOR SELF-DESTRUCTING MESSAGES (TTL) ---
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("global_ephemeral_ttl_card"),
+                    colors = CardDefaults.cardColors(containerColor = DarkSlate),
+                    shape = RoundedCornerShape(16.dp),
+                    border = CardDefaults.outlinedCardBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(AlertCrimson))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Timer,
+                                contentDescription = null,
+                                tint = AlertCrimson,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "GLOBAL SELF-DESTRUCTING MESSAGE TTL",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AlertCrimson,
+                                letterSpacing = 1.sp,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        Text(
+                            text = "Define default Time-To-Live (TTL) for messages to ensure automated ephemeral compliance across all new conversations.",
+                            fontSize = 11.sp,
+                            color = TextSecondary
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        val ttlOptions = listOf(
+                            0L to "Off (Persistent)",
+                            10L to "10 Seconds",
+                            30L to "30 Seconds",
+                            300L to "5 Minutes",
+                            3600L to "1 Hour",
+                            86400L to "24 Hours"
+                        )
+
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            ttlOptions.forEach { (seconds, label) ->
+                                val isSelected = globalEphemeralTtl == seconds
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(if (isSelected) AlertCrimson.copy(alpha = 0.2f) else InnerBoxSlate)
+                                        .border(1.dp, if (isSelected) AlertCrimson else BorderSlate, RoundedCornerShape(8.dp))
+                                        .clickable { onSetGlobalEphemeralTtl(seconds) }
+                                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                                        .testTag("btn_global_ttl_$seconds"),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = label,
+                                        fontSize = 12.sp,
+                                        color = TextPrimary,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                    if (isSelected) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(text = "DEFAULT RULE", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = AlertCrimson, fontFamily = FontFamily.Monospace)
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Icon(Icons.Default.Check, contentDescription = null, tint = AlertCrimson, modifier = Modifier.size(16.dp))
+                                        }
                                     }
                                 }
                             }
