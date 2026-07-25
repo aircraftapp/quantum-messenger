@@ -1,0 +1,6 @@
+{
+  "name": "Quantum Messenger",
+  "description": "Zero-knowledge, post-quantum encrypted P2P messenger with ephemeral messaging, local media compute, and cross-platform cloud sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
