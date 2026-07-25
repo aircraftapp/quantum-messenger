@@ -218,6 +218,26 @@ fun ChatListScreen(
                             )
                         }
                         IconButton(
+                            onClick = { onNavigate(Screen.LANDING_PAGE) },
+                            modifier = Modifier.testTag("btn_landing_page")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Language,
+                                contentDescription = "App Landing & APK Showcase",
+                                tint = QuantumCyan
+                            )
+                        }
+                        IconButton(
+                            onClick = { onNavigate(Screen.ENTERPRISE_MDM) },
+                            modifier = Modifier.testTag("btn_enterprise_mdm")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Security,
+                                contentDescription = "Enterprise MDM Policies",
+                                tint = TacticalEmerald
+                            )
+                        }
+                        IconButton(
                             onClick = { onNavigate(Screen.COMPUTE_DASHBOARD) },
                             modifier = Modifier.testTag("btn_compute_dashboard")
                         ) {

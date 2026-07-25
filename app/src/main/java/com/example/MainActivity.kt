@@ -88,6 +88,19 @@ fun QuantumMessengerApp(
     val showQrScannerModal by viewModel.showQrScannerModal.collectAsStateWithLifecycle()
     val isReadReceiptsEnabled by viewModel.isReadReceiptsEnabled.collectAsStateWithLifecycle()
     val groupNotificationSounds by viewModel.groupNotificationSounds.collectAsStateWithLifecycle()
+
+    val isTorRoutingEnabled by viewModel.isTorRoutingEnabled.collectAsStateWithLifecycle()
+    val torCircuitStatus by viewModel.torCircuitStatus.collectAsStateWithLifecycle()
+    val torOnionAddress by viewModel.torOnionAddress.collectAsStateWithLifecycle()
+
+    val isEnterpriseModeEnabled by viewModel.isEnterpriseModeEnabled.collectAsStateWithLifecycle()
+    val isScreenshotPreventionEnabled by viewModel.isScreenshotPreventionEnabled.collectAsStateWithLifecycle()
+    val isClipboardIsolationEnabled by viewModel.isClipboardIsolationEnabled.collectAsStateWithLifecycle()
+    val isRemoteWipeConfigured by viewModel.isRemoteWipeConfigured.collectAsStateWithLifecycle()
+    val deadManSwitchDays by viewModel.deadManSwitchDays.collectAsStateWithLifecycle()
+
+    val isExportingApk by viewModel.isExportingApk.collectAsStateWithLifecycle()
+    val exportedApkChecksum by viewModel.exportedApkChecksum.collectAsStateWithLifecycle()
     val showCreateStoryDialog by viewModel.showCreateStoryDialog.collectAsStateWithLifecycle()
     val showStoryViewerModal by viewModel.showStoryViewerModal.collectAsStateWithLifecycle()
     val showBroadcastListDialog by viewModel.showBroadcastListDialog.collectAsStateWithLifecycle()
@@ -305,6 +318,43 @@ fun QuantumMessengerApp(
                     onResetDataUsage = { viewModel.resetDataUsageStats() },
                     onSetGlobalEphemeralTtl = { seconds -> viewModel.setGlobalDefaultEphemeralTtl(seconds) },
                     onBackClick = { viewModel.navigateToScreen(Screen.CHAT_LIST) }
+                )
+            }
+
+            Screen.LANDING_PAGE -> {
+                LandingPageScreen(
+                    isTorEnabled = isTorRoutingEnabled,
+                    torCircuitStatus = torCircuitStatus,
+                    torOnionAddress = torOnionAddress,
+                    isEnterpriseMode = isEnterpriseModeEnabled,
+                    isExportingApk = isExportingApk,
+                    exportedApkChecksum = exportedApkChecksum,
+                    onLaunchApp = { viewModel.navigateToScreen(Screen.CHAT_LIST) },
+                    onOpenEnterpriseMdm = { viewModel.navigateToScreen(Screen.ENTERPRISE_MDM) },
+                    onOpenComputeDashboard = { viewModel.navigateToScreen(Screen.COMPUTE_DASHBOARD) },
+                    onToggleTorRouting = { enable -> viewModel.toggleTorRouting(enable) },
+                    onExportApkBundle = { viewModel.exportApkBundle() }
+                )
+            }
+
+            Screen.ENTERPRISE_MDM -> {
+                EnterpriseMdmScreen(
+                    isEnterpriseMode = isEnterpriseModeEnabled,
+                    isTorEnabled = isTorRoutingEnabled,
+                    torCircuitStatus = torCircuitStatus,
+                    torOnionAddress = torOnionAddress,
+                    isScreenshotPreventionEnabled = isScreenshotPreventionEnabled,
+                    isClipboardIsolationEnabled = isClipboardIsolationEnabled,
+                    isRemoteWipeConfigured = isRemoteWipeConfigured,
+                    deadManSwitchDays = deadManSwitchDays,
+                    statusMessage = backupStatusMessage,
+                    onBackClick = { viewModel.navigateToScreen(Screen.CHAT_LIST) },
+                    onToggleEnterpriseMode = { enable -> viewModel.toggleEnterpriseMode(enable) },
+                    onToggleTorRouting = { enable -> viewModel.toggleTorRouting(enable) },
+                    onToggleScreenshotPrevention = { enable -> viewModel.toggleScreenshotPrevention(enable) },
+                    onToggleClipboardIsolation = { enable -> viewModel.toggleClipboardIsolation(enable) },
+                    onUpdateDeadManSwitchDays = { days -> viewModel.updateDeadManSwitchDays(days) },
+                    onTriggerRemoteWipe = { viewModel.triggerSimulatedRemoteWipe() }
                 )
             }
         }
