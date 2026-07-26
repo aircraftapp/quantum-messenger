@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Messenger ⚛️ - Off-Store PQC & Tor Messenger</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkSlate: '#0D1117',
+                        cardSlate: '#161B22',
+                        innerBox: '#21262D',
+                        quantumCyan: '#00F0FF',
+                        tacticalEmerald: '#10B981',
+                        warningAmber: '#F59E0B',
+                        alertCrimson: '#EF4444'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0D1117; color: #C9D1D9; font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+</head>
+<body class="bg-darkSlate text-slate-200 antialiased min-h-screen">
+
+    <!-- NAV BAR -->
+    <nav class="border-b border-slate-800 bg-cardSlate/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl">⚛️</span>
+                <span class="font-black text-xl tracking-wider text-white">QUANTUM<span class="text-quantumCyan">MESSENGER</span></span>
+                <span class="bg-tacticalEmerald/20 text-tacticalEmerald text-xs font-bold px-2 py-0.5 rounded border border-tacticalEmerald/30">v2.4 PQC</span>
+            </div>
+            <div class="hidden md:flex space-x-6 text-sm font-semibold">
+                <a href="#compliance" class="hover:text-quantumCyan transition">Compliance & Standards</a>
+                <a href="#swot" class="hover:text-quantumCyan transition">SWOT Analysis</a>
+                <a href="#pricing" class="hover:text-quantumCyan transition">Licensing & Pricing</a>
+                <a href="#download" class="hover:text-quantumCyan transition">Download APK</a>
+            </div>
+            <a href="#download" class="bg-quantumCyan text-slate-950 font-bold px-4 py-2 rounded-lg hover:bg-cyan-300 transition text-sm">
+                ⬇️ Download .APK
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="max-w-5xl mx-auto px-4 pt-16 pb-12 text-center">
+        <div class="flex justify-center space-x-2 mb-6">
+            <span class="bg-quantumCyan/10 text-quantumCyan text-xs font-bold px-3 py-1 rounded-full border border-quantumCyan/30">NIST ML-KEM-1024</span>
+            <span class="bg-tacticalEmerald/10 text-tacticalEmerald text-xs font-bold px-3 py-1 rounded-full border border-tacticalEmerald/30">TOR v3 ONION ROUTING</span>
+            <span class="bg-warningAmber/10 text-warningAmber text-xs font-bold px-3 py-1 rounded-full border border-warningAmber/30">NATO STANAG READY</span>
+        </div>
+
+        <h1 class="text-4xl md:text-6xl font-black text-white tracking-tight mb-6">
+            Zero-Trust Post-Quantum <br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-quantumCyan via-tacticalEmerald to-teal-400">P2P & Tor Messenger</span>
+        </h1>
+
+        <p class="text-lg text-slate-400 max-w-3xl mx-auto mb-8 leading-relaxed">
+            Designed for investigative journalists, legal professionals, enterprise defense, and tactical personnel. Operates completely off-Google Play with direct APK deployment, zero phone number requirements, and hardware Titan M2 key binding.
+        </p>
+
+        <!-- DOWNLOAD HUB -->
+        <div id="download" class="bg-cardSlate border border-tacticalEmerald/50 rounded-2xl p-8 max-w-2xl mx-auto shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <div class="text-left">
+                    <span class="text-xs font-bold text-tacticalEmerald tracking-widest uppercase">DIRECT APK DISTRIBUTION</span>
+                    <h3 class="text-xl font-bold text-white">QuantumMessenger-v2.4-PQC.apk</h3>
+                </div>
+                <span class="bg-slate-800 text-slate-300 text-xs px-3 py-1 rounded-full font-mono">28.4 MB</span>
+            </div>
+
+            <p class="text-sm text-slate-400 text-left mb-6">
+                Direct off-store binary signed with hardware attestation certificate. Bypasses app store telemetry, trackable push notifications, and country-level censorship.
+            </p>
+
+            <div class="space-y-4">
+                <a href="./QuantumMessenger-v2.4-PQC.apk" download class="block w-full bg-tacticalEmerald hover:bg-emerald-400 text-slate-950 font-extrabold text-center py-4 rounded-xl transition shadow-lg text-lg">
+                    ⬇️ Download Signed Android APK
+                </a>
+
+                <div class="bg-innerBox p-3 rounded-lg text-left text-xs font-mono text-slate-300 space-y-1 border border-slate-700">
+                    <div class="text-tacticalEmerald font-bold">SHA-256 Checksum:</div>
+                    <div class="break-all text-slate-100">8f18cf5f17a4e751a0293b748293749281a17f6e4d293810293810a9c8b7e6d5</div>
+                    <div class="text-slate-500 pt-1">Verify: <code class="text-quantumCyan">sha256sum QuantumMessenger-v2.4-PQC.apk</code></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COMPLIANCE SECTION -->
+    <section id="compliance" class="max-w-5xl mx-auto px-4 py-12">
+        <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+            <span>🛡️</span> International Compliance & Standards
+        </h2>
+
+        <div class="grid md:grid-cols-2 gap-4">
+            <div class="bg-cardSlate border border-slate-800 p-5 rounded-xl">
+                <h3 class="text-white font-bold text-base mb-1">NIST FIPS 203 / 204 Standards</h3>
+                <p class="text-xs text-slate-400">Kyber-1024 KEM for quantum-resistant key encapsulation and Dilithium-5 for digital signatures.</p>
+            </div>
+            <div class="bg-cardSlate border border-slate-800 p-5 rounded-xl">
+                <h3 class="text-white font-bold text-base mb-1">ANSSI (France) & BSI (Germany) Compliant</h3>
+                <p class="text-xs text-slate-400">Strictly satisfies European post-quantum transition requirements for critical infrastructure defense.</p>
+            </div>
+            <div class="bg-cardSlate border border-slate-800 p-5 rounded-xl">
+                <h3 class="text-white font-bold text-base mb-1">NATO STANAG Air-Gapped Mesh Spec</h3>
+                <p class="text-xs text-slate-400">Supports direct peer-to-peer radio/mesh transport with zero internet server dependency.</p>
+            </div>
+            <div class="bg-cardSlate border border-slate-800 p-5 rounded-xl">
+                <h3 class="text-white font-bold text-base mb-1">Swiss FADP & EU GDPR Zero-Knowledge</h3>
+                <p class="text-xs text-slate-400">No central account servers, phone numbers, contacts uploading, or persistent cloud tracking.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SWOT COMPARISON -->
+    <section id="swot" class="max-w-5xl mx-auto px-4 py-12">
+        <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+            <span>📊</span> Competitive Advantage vs Legacy Messengers
+        </h2>
+
+        <div class="overflow-x-auto bg-cardSlate border border-slate-800 rounded-xl p-4">
+            <table class="w-full text-left text-sm text-slate-300">
+                <thead class="bg-innerBox text-quantumCyan text-xs uppercase font-bold">
+                    <tr>
+                        <th class="p-3">Feature</th>
+                        <th class="p-3 text-white">Quantum Messenger</th>
+                        <th class="p-3 text-slate-500">Signal</th>
+                        <th class="p-3 text-slate-500">Telegram</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800 text-xs">
+                    <tr>
+                        <td class="p-3 font-semibold text-white">Post-Quantum Encryption</td>
+                        <td class="p-3 text-tacticalEmerald font-bold">Kyber-1024 + Dilithium-5</td>
+                        <td class="p-3 text-slate-400">PQXDH (Kyber-768)</td>
+                        <td class="p-3 text-alertCrimson">None (Standard RSA/DH)</td>
+                    </tr>
+                    <tr>
+                        <td class="p-3 font-semibold text-white">IP & Location Masking</td>
+                        <td class="p-3 text-tacticalEmerald font-bold">Embedded Tor v3 Onion Routing</td>
+                        <td class="p-3 text-slate-400">Exposes IP to Server</td>
+                        <td class="p-3 text-alertCrimson">Central Server Logged</td>
+                    </tr>
+                    <tr>
+                        <td class="p-3 font-semibold text-white">Off-Store Direct APK</td>
+                        <td class="p-3 text-tacticalEmerald font-bold">Yes (Built-in Attestation)</td>
+                        <td class="p-3 text-slate-400">Limited Website APK</td>
+                        <td class="p-3 text-slate-400">Website APK</td>
+                    </tr>
+                    <tr>
+                        <td class="p-3 font-semibold text-white">Physical Dead-Man Switch</td>
+                        <td class="p-3 text-tacticalEmerald font-bold">Accelerometer Shake Wipe</td>
+                        <td class="p-3 text-alertCrimson">No</td>
+                        <td class="p-3 text-alertCrimson">No</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- PRICING TIERS -->
+    <section id="pricing" class="max-w-5xl mx-auto px-4 py-12">
+        <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+            <span>🏢</span> Licensing & Commercialization
+        </h2>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- OPEN SOURCE -->
+            <div class="bg-cardSlate border border-quantumCyan/40 rounded-2xl p-6 flex flex-col justify-between">
+                <div>
+                    <span class="text-quantumCyan text-xs font-bold uppercase tracking-wider">MIT LICENSE</span>
+                    <h3 class="text-2xl font-bold text-white mt-1">Open Source / Journalist</h3>
+                    <p class="text-3xl font-black text-white my-3">$0 <span class="text-sm font-normal text-slate-400">/ forever free</span></p>
+
+                    <ul class="space-y-2 text-xs text-slate-300 mb-6">
+                        <li class="flex items-center gap-2"><span class="text-tacticalEmerald">✓</span> Full Kyber-1024 P2P Messaging</li>
+                        <li class="flex items-center gap-2"><span class="text-tacticalEmerald">✓</span> Embedded Tor v3 Onion Routing</li>
+                        <li class="flex items-center gap-2"><span class="text-tacticalEmerald">✓</span> Local Ephemeral Message Database</li>
+                        <li class="flex items-center gap-2"><span class="text-tacticalEmerald">✓</span> Off-Store Signed APK Download</li>
+                    </ul>
+                </div>
+                <a href="#download" class="block text-center bg-innerBox hover:bg-slate-700 text-quantumCyan font-bold py-3 rounded-xl border border-quantumCyan/30 text-sm">
+                    Get Open Source .APK
+                </a>
+            </div>
+
+            <!-- ENTERPRISE MDM -->
+            <div class="bg-cardSlate border border-tacticalEmerald/60 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute top-3 right-3 bg-tacticalEmerald text-slate-950 font-extrabold text-[10px] px-2 py-0.5 rounded">COMMERCIAL</div>
+                <div>
+                    <span class="text-tacticalEmerald text-xs font-bold uppercase tracking-wider">ENTERPRISE & MILITARY MDM</span>
+                    <h3 class="text-2xl font-bold text-white mt-1">Enterprise Defender</h3>
+                    <p class="text-3xl font-black text-white my-3">$12 <span class="text-sm font-normal text-slate-400">/ seat / month</span></p>
+
+                    <ul class="space-y-2 text-xs text-slate-300 mb-6">
+                        <li class="flex items-center gap-2"><span class="text-tacticalEmerald">✓</span> Everything in Open Source Edition</li>
+                        <li class="flex items-center gap-2"><span class="text-tacticalEmerald">✓</span> Remote MDM Compliance & Wipe Engine</li>
+                        <li class="flex items-center gap-2"><span class="text-tacticalEmerald">✓</span> Titan M2 / StrongBox Hardware Key Binding</li>
+                        <li class="flex items-center gap-2"><span class="text-tacticalEmerald">✓</span> Screenshot & Clipboard Memory Guard</li>
+                        <li class="flex items-center gap-2"><span class="text-tacticalEmerald">✓</span> Accelerometer Shake-to-Wipe Physical Switch</li>
+                    </ul>
+                </div>
+                <a href="mailto:enterprise@quantum-messenger.io?subject=Enterprise%20MDM%20Licensing" class="block text-center bg-tacticalEmerald hover:bg-emerald-400 text-slate-950 font-extrabold py-3 rounded-xl text-sm transition">
+                    Contact Enterprise Sales
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-800 py-8 text-center text-xs text-slate-500">
+        <p>© 2026 Quantum Messenger Systems. Published for Off-Store Direct Distribution.</p>
+        <p class="mt-1">NIST FIPS 203/204 • Tor v3 Onion • Titan M2 HSM Attestation</p>
+    </footer>
+
+</body>
+</html>

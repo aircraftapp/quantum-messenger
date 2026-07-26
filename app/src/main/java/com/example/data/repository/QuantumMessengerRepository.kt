@@ -463,6 +463,13 @@ class QuantumMessengerRepository(private val dao: QuantumDao) {
         dao.deleteMessagesForChats(chatIds)
     }
 
+    suspend fun triggerEmergencyRemoteWipe() {
+        dao.deleteAllMessages()
+        dao.deleteAllChats()
+        dao.deleteAllContacts()
+        dao.deleteAllStatusStories()
+    }
+
     suspend fun saveChatDraft(chatId: String, draftText: String) {
         dao.updateChatDraft(chatId, draftText)
     }

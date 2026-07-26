@@ -98,6 +98,9 @@ fun QuantumMessengerApp(
     val isClipboardIsolationEnabled by viewModel.isClipboardIsolationEnabled.collectAsStateWithLifecycle()
     val isRemoteWipeConfigured by viewModel.isRemoteWipeConfigured.collectAsStateWithLifecycle()
     val deadManSwitchDays by viewModel.deadManSwitchDays.collectAsStateWithLifecycle()
+    val isSystemRootedOrCompromised by viewModel.isSystemRootedOrCompromised.collectAsStateWithLifecycle()
+    val hardwareKeystoreAttested by viewModel.hardwareKeystoreAttested.collectAsStateWithLifecycle()
+    val hardwareKeystoreType by viewModel.hardwareKeystoreType.collectAsStateWithLifecycle()
 
     val isExportingApk by viewModel.isExportingApk.collectAsStateWithLifecycle()
     val exportedApkChecksum by viewModel.exportedApkChecksum.collectAsStateWithLifecycle()
@@ -347,13 +350,17 @@ fun QuantumMessengerApp(
                     isClipboardIsolationEnabled = isClipboardIsolationEnabled,
                     isRemoteWipeConfigured = isRemoteWipeConfigured,
                     deadManSwitchDays = deadManSwitchDays,
-                    statusMessage = backupStatusMessage,
+                    isSystemRootedOrCompromised = isSystemRootedOrCompromised,
+                    hardwareKeystoreAttested = hardwareKeystoreAttested,
+                    hardwareKeystoreType = hardwareKeystoreType,
+                    statusMessage = backupStatusMessage ?: "",
                     onBackClick = { viewModel.navigateToScreen(Screen.CHAT_LIST) },
                     onToggleEnterpriseMode = { enable -> viewModel.toggleEnterpriseMode(enable) },
                     onToggleTorRouting = { enable -> viewModel.toggleTorRouting(enable) },
                     onToggleScreenshotPrevention = { enable -> viewModel.toggleScreenshotPrevention(enable) },
                     onToggleClipboardIsolation = { enable -> viewModel.toggleClipboardIsolation(enable) },
                     onUpdateDeadManSwitchDays = { days -> viewModel.updateDeadManSwitchDays(days) },
+                    onToggleSystemIntegritySimulation = { compromised -> viewModel.toggleSystemIntegritySimulation(compromised) },
                     onTriggerRemoteWipe = { viewModel.triggerSimulatedRemoteWipe() }
                 )
             }

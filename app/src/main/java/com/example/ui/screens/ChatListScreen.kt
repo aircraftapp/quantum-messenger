@@ -301,6 +301,44 @@ fun ChatListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            // App Mode & Marketing Web Portal Separation Banner
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .clickable { onNavigate(Screen.LANDING_PAGE) },
+                color = DarkSlate,
+                shape = RoundedCornerShape(10.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, QuantumCyan.copy(alpha = 0.4f))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(TacticalEmerald)
+                        )
+                        Column {
+                            Text("📱 NATIVE MESSENGER RUNTIME", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                            Text("Tap to visit Commercial Web Site & Off-Store APK Portal", fontSize = 9.sp, color = QuantumCyan)
+                        }
+                    }
+                    Surface(
+                        color = QuantumCyan.copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text("🌐 WEB PORTAL ➔", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = QuantumCyan, modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp))
+                    }
+                }
+            }
+
             // Search Bar
             OutlinedTextField(
                 value = searchQuery,

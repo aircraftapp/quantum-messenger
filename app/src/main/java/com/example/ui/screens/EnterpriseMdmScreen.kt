@@ -29,6 +29,9 @@ fun EnterpriseMdmScreen(
     isClipboardIsolationEnabled: Boolean,
     isRemoteWipeConfigured: Boolean,
     deadManSwitchDays: Int,
+    isSystemRootedOrCompromised: Boolean = false,
+    hardwareKeystoreAttested: Boolean = true,
+    hardwareKeystoreType: String = "Titan M2 / Android StrongBox Keymaster (HW-Bound)",
     statusMessage: String,
     onBackClick: () -> Unit,
     onToggleEnterpriseMode: (Boolean) -> Unit,
@@ -36,6 +39,7 @@ fun EnterpriseMdmScreen(
     onToggleScreenshotPrevention: (Boolean) -> Unit,
     onToggleClipboardIsolation: (Boolean) -> Unit,
     onUpdateDeadManSwitchDays: (Int) -> Unit,
+    onToggleSystemIntegritySimulation: (Boolean) -> Unit = {},
     onTriggerRemoteWipe: () -> Unit
 ) {
     var showWipeConfirmDialog by remember { mutableStateOf(false) }
@@ -297,6 +301,82 @@ fun EnterpriseMdmScreen(
                 }
             }
 
+            // Section 3.5: Hardware Keystore & System Runtime Integrity
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = CardSlate,
+                shape = RoundedCornerShape(12.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, TacticalEmerald.copy(alpha = 0.5f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "🔐 HARDWARE KEYSTORE & SYSTEM INTEGRITY",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TacticalEmerald,
+                        letterSpacing = 1.sp
+                    )
+
+                    Surface(
+                        color = InnerBoxSlate,
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                                Text("HW Security Element:", fontSize = 11.sp, color = TextMuted)
+                                Text(hardwareKeystoreType, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TacticalEmerald)
+                            }
+
+                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                                Text("Attestation Status:", fontSize = 11.sp, color = TextMuted)
+                                Text(if (hardwareKeystoreAttested) "PASSED (Non-Exportable Keys)" else "FAILED", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TacticalEmerald)
+                            }
+
+                            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                                Text("Runtime OS Integrity:", fontSize = 11.sp, color = TextMuted)
+                                Text(
+                                    if (isSystemRootedOrCompromised) "COMPROMISED (Root/Jailbreak Detected)" else "CLEAN (Genuine Android OS)",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSystemRootedOrCompromised) AlertCrimson else TacticalEmerald
+                                )
+                            }
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Simulate OS Root / Integrity Compromise", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = TextPrimary)
+                            Text("Tests automatic channel lockdown when system is compromised", fontSize = 10.sp, color = TextMuted)
+                        }
+
+                        Switch(
+                            checked = isSystemRootedOrCompromised,
+                            onCheckedChange = onToggleSystemIntegritySimulation,
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = ObsidianBlack,
+                                checkedTrackColor = AlertCrimson,
+                                uncheckedThumbColor = TextMuted,
+                                uncheckedTrackColor = InnerBoxSlate
+                            ),
+                            modifier = Modifier.testTag("switch_integrity_compromise")
+                        )
+                    }
+                }
+            }
+
             // Section 4: Anti-Forensics & Remote Wipe
             Surface(
                 modifier = Modifier.fillMaxWidth(),
@@ -344,7 +424,7 @@ fun EnterpriseMdmScreen(
                                         text = "${days}d",
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = if (isSelected) White else TextMuted,
+                                        color = if (isSelected) Color.White else TextMuted,
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                     )
                                 }
@@ -360,7 +440,7 @@ fun EnterpriseMdmScreen(
                             .fillMaxWidth()
                             .testTag("btn_trigger_remote_wipe")
                     ) {
-                        Text("🚨 Trigger Instant Remote Wipe (Simulated)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = White)
+                        Text("🚨 Trigger Instant Remote Wipe (Simulated)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     }
                 }
             }

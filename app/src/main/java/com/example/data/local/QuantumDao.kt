@@ -65,6 +65,18 @@ interface QuantumDao {
     @Query("DELETE FROM messages WHERE chatId = :chatId")
     suspend fun deleteAllMessagesInChat(chatId: String)
 
+    @Query("DELETE FROM chats")
+    suspend fun deleteAllChats()
+
+    @Query("DELETE FROM messages")
+    suspend fun deleteAllMessages()
+
+    @Query("DELETE FROM contacts")
+    suspend fun deleteAllContacts()
+
+    @Query("DELETE FROM status_stories")
+    suspend fun deleteAllStatusStories()
+
     // --- STATUS STORIES ---
     @Query("SELECT * FROM status_stories WHERE expiresAtTimestamp > :nowTimestamp ORDER BY timestamp DESC")
     fun getActiveStatusStories(nowTimestamp: Long = System.currentTimeMillis()): Flow<List<StatusStoryEntity>>

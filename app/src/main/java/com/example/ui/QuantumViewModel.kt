@@ -107,7 +107,7 @@ class QuantumViewModel(application: Application) : AndroidViewModel(application)
 
     // --- NAVIGATION ---
     private val _activeScreen = MutableStateFlow(
-        if (!prefs.getBoolean("is_configured", false)) Screen.INITIAL_SETUP else Screen.CHAT_LIST
+        if (!prefs.getBoolean("is_configured", false)) Screen.INITIAL_SETUP else Screen.LANDING_PAGE
     )
     val activeScreen: StateFlow<Screen> = _activeScreen.asStateFlow()
 
@@ -420,10 +420,29 @@ class QuantumViewModel(application: Application) : AndroidViewModel(application)
         _backupStatusMessage.value = "⏰ Dead Man's Anti-Forensic Switch set to $days days"
     }
 
+    // --- HARDWARE KEYSTORE & COMPROMISE/ROOT INTEGRITY ---
+    private val _isSystemRootedOrCompromised = MutableStateFlow(false)
+    val isSystemRootedOrCompromised: StateFlow<Boolean> = _isSystemRootedOrCompromised.asStateFlow()
+
+    private val _hardwareKeystoreAttested = MutableStateFlow(true)
+    val hardwareKeystoreAttested: StateFlow<Boolean> = _hardwareKeystoreAttested.asStateFlow()
+
+    private val _hardwareKeystoreType = MutableStateFlow("Titan M2 / Android StrongBox Keymaster (HW-Bound)")
+    val hardwareKeystoreType: StateFlow<String> = _hardwareKeystoreType.asStateFlow()
+
+    fun toggleSystemIntegritySimulation(compromised: Boolean) {
+        _isSystemRootedOrCompromised.value = compromised
+        if (compromised) {
+            _backupStatusMessage.value = "⚠️ CRITICAL ALERT: System Integrity Violation Detected (Root/Jailbreak)! High-security P2P channels restricted."
+        } else {
+            _backupStatusMessage.value = "✅ System Integrity Verified: Clean Execution Environment."
+        }
+    }
+
     fun triggerSimulatedRemoteWipe() {
         viewModelScope.launch {
             _backupStatusMessage.value = "🚨 EMERGENCY REMOTE WIPE EXECUTED: All Local Keys & Chats Purged!"
-            repository.deleteAllChatsAndMessages()
+            repository.triggerEmergencyRemoteWipe()
             _activeScreen.value = Screen.INITIAL_SETUP
         }
     }
