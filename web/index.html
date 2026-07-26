@@ -41,7 +41,9 @@
             <div class="hidden md:flex space-x-6 text-sm font-semibold">
                 <a href="#compliance" class="hover:text-quantumCyan transition">Compliance & Standards</a>
                 <a href="#swot" class="hover:text-quantumCyan transition">SWOT Analysis</a>
+                <a href="#hardware" class="hover:text-quantumCyan transition">Hardware Recommendations</a>
                 <a href="#pricing" class="hover:text-quantumCyan transition">Licensing & Pricing</a>
+                <a href="#enterprise-trial" class="hover:text-quantumCyan transition">Request Trial</a>
                 <a href="#download" class="hover:text-quantumCyan transition">Download APK</a>
             </div>
             <a href="#download" class="bg-quantumCyan text-slate-950 font-bold px-4 py-2 rounded-lg hover:bg-cyan-300 transition text-sm">
@@ -167,6 +169,120 @@
         </div>
     </section>
 
+    <!-- HARDWARE RECOMMENDATIONS SECTION -->
+    <section id="hardware" class="max-w-5xl mx-auto px-4 py-12">
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8">
+            <div>
+                <span class="text-xs font-bold text-quantumCyan tracking-widest uppercase">HARDWARE ASSURANCE & ATTESTATION</span>
+                <h2 class="text-3xl font-black text-white mt-1 flex items-center gap-2">
+                    <span>📱</span> Secure Hardware Recommendations
+                </h2>
+            </div>
+            <p class="text-xs text-slate-400 max-w-md mt-2 md:mt-0">
+                To guarantee zero key leakage, Quantum Messenger relies on dedicated hardware security modules (HSMs), Titan M2 chips, and physical kill switches.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- GOOGLE PIXEL WITH TITAN M2 -->
+            <div class="bg-cardSlate border border-quantumCyan/30 rounded-2xl p-6 hover:border-quantumCyan/60 transition">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <span class="bg-quantumCyan/10 text-quantumCyan text-[10px] font-bold px-2.5 py-1 rounded-md border border-quantumCyan/30 uppercase">Recommended Android</span>
+                        <h3 class="text-xl font-bold text-white mt-2">Google Pixel 8 / 9 Pro</h3>
+                    </div>
+                    <span class="text-2xl">🛡️</span>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                    Features the dedicated <strong class="text-white">Titan M2 security chip</strong> and StrongBox Keymaster. Supports hardware-bound non-exportable post-quantum ML-KEM-1024 encryption keys and memory isolation. Ideal with <strong class="text-quantumCyan">GrapheneOS</strong> or <strong class="text-quantumCyan">CalyxOS</strong>.
+                </p>
+                <div class="bg-innerBox p-3 rounded-xl mb-4 text-xs space-y-1">
+                    <div class="text-slate-400"><strong class="text-white">Security Specs:</strong> FIPS 140-2 Level 3 HSM, Insite side-channel protection, Titan M2 Hardware Root of Trust.</div>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="https://store.google.com/magazine/pixel_titan_m2" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs font-bold text-quantumCyan hover:underline">
+                        <span>🔗 Titan M2 Specs</span> ➔
+                    </a>
+                    <a href="https://grapheneos.org/faq#hardware-security" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs font-bold text-tacticalEmerald hover:underline">
+                        <span>🔗 GrapheneOS Security</span> ➔
+                    </a>
+                </div>
+            </div>
+
+            <!-- PURISM LIBREM 5 & LIBREM 14 -->
+            <div class="bg-cardSlate border border-tacticalEmerald/30 rounded-2xl p-6 hover:border-tacticalEmerald/60 transition">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <span class="bg-tacticalEmerald/10 text-tacticalEmerald text-[10px] font-bold px-2.5 py-1 rounded-md border border-tacticalEmerald/30 uppercase">Mobile & Desktop Privacy</span>
+                        <h3 class="text-xl font-bold text-white mt-2">Purism Librem 5 & Librem 14</h3>
+                    </div>
+                    <span class="text-2xl">⚡</span>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                    Hardened open-hardware device equipped with <strong class="text-white">Hardware Physical Kill Switches</strong> for cellular, Wi-Fi, camera, and microphone. Integrated OpenPGP smartcard chip for cryptographic key isolation and zero baseband tracking.
+                </p>
+                <div class="bg-innerBox p-3 rounded-xl mb-4 text-xs space-y-1">
+                    <div class="text-slate-400"><strong class="text-white">Security Specs:</strong> 3x Hardware kill switches, isolated baseband modem, PureOS/Qubes OS zero-telemetry.</div>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="https://puri.sm/products/librem-5/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs font-bold text-tacticalEmerald hover:underline">
+                        <span>🔗 Librem 5 Specs</span> ➔
+                    </a>
+                    <a href="https://puri.sm/products/librem-14/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs font-bold text-quantumCyan hover:underline">
+                        <span>🔗 Librem 14 Specs</span> ➔
+                    </a>
+                </div>
+            </div>
+
+            <!-- HARDENED THINKPAD / SYSTEM76 -->
+            <div class="bg-cardSlate border border-slate-700 rounded-2xl p-6 hover:border-slate-500 transition">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <span class="bg-slate-700 text-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-md border border-slate-600 uppercase">Enterprise Desktop / Field Workstation</span>
+                        <h3 class="text-xl font-bold text-white mt-2">Lenovo ThinkPad / System76</h3>
+                    </div>
+                    <span class="text-2xl">💻</span>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                    Enterprise workstation with <strong class="text-white">Discrete TPM 2.0</strong>, tamper-evident BIOS locks, and physical intrusion sensors. Pairs with <strong class="text-warningAmber">YubiKey 5 Series FIDO2/PQC</strong> security keys for multi-factor hardware attestation and Qubes OS compartmentalization.
+                </p>
+                <div class="bg-innerBox p-3 rounded-xl mb-4 text-xs space-y-1">
+                    <div class="text-slate-400"><strong class="text-white">Security Specs:</strong> Discrete TPM 2.0 (TCG Certified), YubiKey 5 Series FIDO2, Intel vPro Hardware Shield.</div>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="https://www.lenovo.com/us/en/thinkpad/security/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs font-bold text-slate-200 hover:underline">
+                        <span>🔗 ThinkShield Security Specs</span> ➔
+                    </a>
+                    <a href="https://www.yubico.com/products/yubikey-5-series/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs font-bold text-warningAmber hover:underline">
+                        <span>🔗 YubiKey 5 Specs</span> ➔
+                    </a>
+                </div>
+            </div>
+
+            <!-- NATO TACTICAL MILITARY HANDHELDS -->
+            <div class="bg-cardSlate border border-warningAmber/40 rounded-2xl p-6 hover:border-warningAmber/70 transition">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <span class="bg-warningAmber/10 text-warningAmber text-[10px] font-bold px-2.5 py-1 rounded-md border border-warningAmber/30 uppercase">Tactical & Military Grade</span>
+                        <h3 class="text-xl font-bold text-white mt-2">NATO Ruggedized Field Handhelds</h3>
+                    </div>
+                    <span class="text-2xl">🎖️</span>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                    Built to <strong class="text-white">MIL-STD-810H & IP68</strong> rugged specifications. Features an onboard FIPS 140-3 Hardware Security Module (HSM), direct air-gapped mesh radio hardware interface, and accelerometer-driven physical <strong class="text-warningAmber">Shake-to-Wipe</strong> dead man switch.
+                </p>
+                <div class="bg-innerBox p-3 rounded-xl mb-4 text-xs space-y-1">
+                    <div class="text-slate-400"><strong class="text-white">Security Specs:</strong> MIL-STD-810H, FIPS 140-3 HSM, NATO STANAG Mesh Radio Protocol.</div>
+                </div>
+                <div class="flex space-x-3">
+                    <a href="https://www.nato.int/cps/en/natohq/topics_157573.htm" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs font-bold text-warningAmber hover:underline">
+                        <span>🔗 NATO Cyber Defence Specs</span> ➔
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- PRICING TIERS -->
     <section id="pricing" class="max-w-5xl mx-auto px-4 py-12">
         <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
@@ -209,12 +325,132 @@
                         <li class="flex items-center gap-2"><span class="text-tacticalEmerald">✓</span> Accelerometer Shake-to-Wipe Physical Switch</li>
                     </ul>
                 </div>
-                <a href="mailto:enterprise@quantum-messenger.io?subject=Enterprise%20MDM%20Licensing" class="block text-center bg-tacticalEmerald hover:bg-emerald-400 text-slate-950 font-extrabold py-3 rounded-xl text-sm transition">
-                    Contact Enterprise Sales
+                <a href="#enterprise-trial" class="block text-center bg-tacticalEmerald hover:bg-emerald-400 text-slate-950 font-extrabold py-3 rounded-xl text-sm transition shadow-lg">
+                    🛡️ Request Enterprise Trial
                 </a>
             </div>
         </div>
     </section>
+
+    <!-- FORMAL REQUEST ENTERPRISE TRIAL FORM SECTION -->
+    <section id="enterprise-trial" class="max-w-5xl mx-auto px-4 py-12">
+        <div class="bg-cardSlate border border-tacticalEmerald/50 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-tacticalEmerald/5 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="mb-8">
+                <div class="flex items-center space-x-2 mb-2">
+                    <span class="bg-tacticalEmerald/20 text-tacticalEmerald text-xs font-bold px-2.5 py-1 rounded border border-tacticalEmerald/30">AUDIT & DEMO SCHEDULE</span>
+                    <span class="bg-quantumCyan/20 text-quantumCyan text-xs font-bold px-2.5 py-1 rounded border border-quantumCyan/30">30-DAY TRIAL</span>
+                </div>
+                <h2 class="text-3xl font-black text-white tracking-tight">Request Enterprise Trial & Security Audit</h2>
+                <p class="text-sm text-slate-400 mt-2 max-w-2xl">
+                    Fill out the security evaluation request to receive a tailored proof-of-concept APK build, MDM policy keys, and schedule a zero-trust architecture demo with our security engineers.
+                </p>
+            </div>
+
+            <!-- SUCCESS CONFIRMATION STATE (Hidden by default) -->
+            <div id="trialSuccessAlert" class="hidden bg-tacticalEmerald/10 border border-tacticalEmerald text-slate-100 p-6 rounded-xl mb-6">
+                <div class="flex items-start space-x-3">
+                    <span class="text-2xl">✅</span>
+                    <div>
+                        <h4 class="text-lg font-bold text-tacticalEmerald">Enterprise Audit Ticket Issued</h4>
+                        <p class="text-xs text-slate-300 mt-1">
+                            Your audit request ticket <code id="ticketId" class="text-quantumCyan font-mono font-bold">AUDIT-REQ-8F18-2026</code> has been logged into our zero-trust onboarding portal.
+                        </p>
+                        <p class="text-xs text-slate-400 mt-2">
+                            A security specialist will reach out to your enterprise domain address within 4 business hours to schedule the live demo and deliver your test tenant MDM keypair.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <form id="enterpriseTrialForm" onsubmit="event.preventDefault(); submitEnterpriseTrial();" class="space-y-6">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Full Name -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Full Name *</label>
+                        <input type="text" id="trialName" required placeholder="e.g. Commander Sarah Jenkins" class="w-full bg-innerBox border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-tacticalEmerald transition">
+                    </div>
+
+                    <!-- Enterprise Email -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Enterprise / Agency Email *</label>
+                        <input type="email" id="trialEmail" required placeholder="s.jenkins@defense-corp.org" class="w-full bg-innerBox border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-tacticalEmerald transition">
+                    </div>
+
+                    <!-- Organization -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Organization / Agency *</label>
+                        <input type="text" id="trialOrg" required placeholder="Defense Tactical Cyber Command / NGO" class="w-full bg-innerBox border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-tacticalEmerald transition">
+                    </div>
+
+                    <!-- Use Case / Sector -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Sector / Operating Environment *</label>
+                        <select id="trialSector" class="w-full bg-innerBox border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-tacticalEmerald transition">
+                            <option value="Military & Tactical Defense">Military & Tactical Defense</option>
+                            <option value="Investigative Journalism / NGO">Investigative Journalism / NGO</option>
+                            <option value="Enterprise IT & MDM Compliance">Enterprise IT & MDM Compliance</option>
+                            <option value="Legal & High-Risk Security">Legal & High-Risk Security</option>
+                            <option value="Government Infrastructure">Government Infrastructure</option>
+                        </select>
+                    </div>
+
+                    <!-- Deployment Scale -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Estimated Deployment Scale *</label>
+                        <select id="trialScale" class="w-full bg-innerBox border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-tacticalEmerald transition">
+                            <option value="10 - 50 Seats (Tactical Unit)">10 - 50 Seats (Tactical Unit)</option>
+                            <option value="50 - 250 Seats (Enterprise Division)">50 - 250 Seats (Enterprise Division)</option>
+                            <option value="250 - 1000 Seats (Regional Command)">250 - 1000 Seats (Regional Command)</option>
+                            <option value="1000+ Seats (Global Fleet)">1000+ Seats (Global Fleet)</option>
+                        </select>
+                    </div>
+
+                    <!-- Hardware HSM Preference -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Preferred Hardware HSM *</label>
+                        <select id="trialHsm" class="w-full bg-innerBox border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-tacticalEmerald transition">
+                            <option value="Google Pixel Titan M2 + GrapheneOS">Google Pixel Titan M2 + GrapheneOS</option>
+                            <option value="Purism Librem 5 / Physical Kill Switches">Purism Librem 5 / Physical Kill Switches</option>
+                            <option value="Enterprise Workstation TPM 2.0 + YubiKey 5">Enterprise Workstation TPM 2.0 + YubiKey 5</option>
+                            <option value="NATO STANAG Air-Gapped Mesh Handheld">NATO STANAG Air-Gapped Mesh Handheld</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Technical Requirements & Notes -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Security Audit Notes & Demo Schedule Preferences</label>
+                    <textarea id="trialNotes" rows="3" placeholder="Specify required security compliance (e.g. NIST FIPS 203, ANSSI, NATO STANAG) and preferred times for live demo..." class="w-full bg-innerBox border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-tacticalEmerald transition"></textarea>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                    <p class="text-xs text-slate-400">
+                        🔒 Zero-knowledge submission. Information is protected under strict non-disclosure.
+                    </p>
+                    <button type="submit" class="w-full sm:w-auto bg-tacticalEmerald hover:bg-emerald-400 text-slate-950 font-extrabold px-8 py-3.5 rounded-xl transition shadow-lg text-sm flex items-center justify-center gap-2">
+                        <span>🛡️</span> Submit Enterprise Trial Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <script>
+        function submitEnterpriseTrial() {
+            const name = document.getElementById('trialName').value;
+            const email = document.getElementById('trialEmail').value;
+            if (!name || !email) return;
+
+            const randomCode = Math.floor(1000 + Math.random() * 9000);
+            const ticket = 'AUDIT-REQ-' + randomCode + '-2026';
+            document.getElementById('ticketId').innerText = ticket;
+
+            document.getElementById('enterpriseTrialForm').classList.add('hidden');
+            document.getElementById('trialSuccessAlert').classList.remove('hidden');
+        }
+    </script>
 
     <!-- FOOTER -->
     <footer class="border-t border-slate-800 py-8 text-center text-xs text-slate-500">

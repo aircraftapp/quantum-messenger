@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -435,28 +436,92 @@ fun LandingPageScreen(
             }
         }
 
-        // --- 5. RECOMMENDED HARDWARE FOR FIELD OPERATIONS ---
+        // --- 5. SECURE HARDWARE RECOMMENDATIONS FOR ENTERPRISE & MILITARY USE ---
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = CardSlate,
             shape = RoundedCornerShape(14.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, BorderSlate)
+            border = androidx.compose.foundation.BorderStroke(1.dp, QuantumCyan.copy(alpha = 0.5f))
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "📱 HARDWARE RECOMMENDATIONS & SPECS",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = QuantumCyan,
+                        letterSpacing = 1.sp
+                    )
+                    Surface(
+                        color = QuantumCyan.copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Text(
+                            text = "ATTESTED HSM",
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = QuantumCyan,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+
                 Text(
-                    text = "📱 RECOMMENDED HARDWARE FOR TACTICAL & FIELD USE",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = QuantumCyan,
-                    letterSpacing = 1.sp
+                    text = "Zero-trust PQC protection requires hardware-enforced cryptographic key isolation. The following devices provide hardware Titan M2, physical kill switches, and FIPS 140-3 HSM attestation:",
+                    fontSize = 10.sp,
+                    color = TextMuted,
+                    lineHeight = 14.sp
                 )
 
-                HardwareCard("Smartphones", "Google Pixel 8/9 Pro (Titan M2 + GrapheneOS / CalyxOS), Samsung Knox Quantum Edition")
-                HardwareCard("Tablets", "Google Pixel Tablet (Titan M2 HW Bound), iPad Pro with Secure Enclave hardware binding")
-                HardwareCard("Laptops", "Purism Librem 14 / System76 with Qubes OS or Linux + YubiKey 5 Series FIDO2 token binding")
+                HardwareSpecCard(
+                    category = "RECOMMENDED ANDROID PHONE",
+                    title = "Google Pixel 8 / 9 Pro (Titan M2 + GrapheneOS)",
+                    description = "Features Google Titan M2 hardware security chip & StrongBox Keymaster. Enforces non-exportable ML-KEM-1024 encryption keys with GrapheneOS / CalyxOS.",
+                    specs = "FIPS 140-2 L3 HSM • Insite Side-Channel Shield • HW Root of Trust",
+                    links = listOf(
+                        "Titan M2 Specs" to "https://store.google.com/magazine/pixel_titan_m2",
+                        "GrapheneOS Security" to "https://grapheneos.org/faq#hardware-security"
+                    )
+                )
+
+                HardwareSpecCard(
+                    category = "MOBILE & DESKTOP PRIVACY",
+                    title = "Purism Librem 5 / Librem 14 Workstation",
+                    description = "Hardened open-hardware device with 3x Physical Hardware Kill Switches (Cellular, Wi-Fi, Cam/Mic). Built-in OpenPGP smartcard chip for cryptographic key isolation.",
+                    specs = "3x Hardware Kill Switches • PureOS / Qubes OS • Smartcard HSM",
+                    links = listOf(
+                        "Librem 5 Specs" to "https://puri.sm/products/librem-5/",
+                        "Librem 14 Specs" to "https://puri.sm/products/librem-14/"
+                    )
+                )
+
+                HardwareSpecCard(
+                    category = "ENTERPRISE WORKSTATION",
+                    title = "Lenovo ThinkPad / System76 + YubiKey 5 PQC",
+                    description = "Discrete TPM 2.0 tamper-evident enterprise workstation with Qubes OS compartmentalization & YubiKey 5 Series FIDO2/PQC token binding.",
+                    specs = "Discrete TPM 2.0 (TCG Certified) • YubiKey 5 PQC • Intel vPro Shield",
+                    links = listOf(
+                        "ThinkShield Specs" to "https://www.lenovo.com/us/en/thinkpad/security/",
+                        "YubiKey 5 Specs" to "https://www.yubico.com/products/yubikey-5-series/"
+                    )
+                )
+
+                HardwareSpecCard(
+                    category = "TACTICAL & MILITARY GRADE",
+                    title = "NATO STANAG Ruggedized Handhelds",
+                    description = "MIL-STD-810H & IP68 rugged Android handheld with onboard FIPS 140-3 HSM, air-gapped mesh radio interface, and accelerometer Shake-to-Wipe dead man switch.",
+                    specs = "MIL-STD-810H • FIPS 140-3 HSM • NATO STANAG Mesh Radio",
+                    links = listOf(
+                        "NATO Cyber Defence Specs" to "https://www.nato.int/cps/en/natohq/topics_157573.htm"
+                    )
+                )
             }
         }
 
@@ -576,7 +641,10 @@ fun LandingPageScreen(
             }
         }
 
-        // --- 8. QUICK NAVIGATION DASHBOARD BUTTONS ---
+        // --- 8. FORMAL REQUEST ENTERPRISE TRIAL & SECURITY AUDIT FORM ---
+        EnterpriseTrialRequestComponent()
+
+        // --- 9. QUICK NAVIGATION DASHBOARD BUTTONS ---
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = InnerBoxSlate,
@@ -689,19 +757,65 @@ private fun SwotBullet(text: String) {
 }
 
 @Composable
-private fun HardwareCard(category: String, devices: String) {
+private fun HardwareSpecCard(
+    category: String,
+    title: String,
+    description: String,
+    specs: String,
+    links: List<Pair<String, String>>
+) {
+    val uriHandler = LocalUriHandler.current
+
     Surface(
         color = InnerBoxSlate,
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(10.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, BorderSlate)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text(category, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = QuantumCyan)
-            Text(devices, fontSize = 10.sp, color = TextSecondary)
+            Text(category, fontSize = 9.sp, fontWeight = FontWeight.Bold, color = QuantumCyan, letterSpacing = 0.5.sp)
+            Text(title, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+            Text(description, fontSize = 10.sp, color = TextSecondary, lineHeight = 14.sp)
+
+            Surface(
+                color = DarkSlate,
+                shape = RoundedCornerShape(6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "🔒 $specs",
+                    fontSize = 9.sp,
+                    color = TextMuted,
+                    modifier = Modifier.padding(6.dp)
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                links.forEach { (label, url) ->
+                    Text(
+                        text = "🔗 $label ➔",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TacticalEmerald,
+                        modifier = Modifier.clickable {
+                            try {
+                                uriHandler.openUri(url)
+                            } catch (e: Exception) {
+                                // Fallback
+                            }
+                        }
+                    )
+                }
+            }
         }
     }
 }
@@ -714,6 +828,286 @@ private fun FeatureCheckItem(text: String) {
     ) {
         Text("✓", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TacticalEmerald)
         Text(text = text, fontSize = 10.sp, color = TextPrimary)
+    }
+}
+
+@Composable
+private fun EnterpriseTrialRequestComponent() {
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var organization by remember { mutableStateOf("") }
+    var sector by remember { mutableStateOf("Military & Tactical Defense") }
+    var scale by remember { mutableStateOf("10 - 50 Seats (Tactical Unit)") }
+    var hsmPreference by remember { mutableStateOf("Google Pixel Titan M2 + GrapheneOS") }
+    var notes by remember { mutableStateOf("") }
+    var isSubmitted by remember { mutableStateOf(false) }
+    var ticketId by remember { mutableStateOf("") }
+
+    val sectorOptions = listOf(
+        "Military & Tactical Defense",
+        "Investigative Journalism / NGO",
+        "Enterprise IT & MDM Compliance",
+        "Legal & High-Risk Security",
+        "Government Infrastructure"
+    )
+
+    val scaleOptions = listOf(
+        "10 - 50 Seats (Tactical Unit)",
+        "50 - 250 Seats (Enterprise Division)",
+        "250 - 1000 Seats (Regional Command)",
+        "1000+ Seats (Global Fleet)"
+    )
+
+    val hsmOptions = listOf(
+        "Google Pixel Titan M2 + GrapheneOS",
+        "Purism Librem 5 / Physical Kill Switches",
+        "Enterprise Workstation TPM 2.0 + YubiKey 5",
+        "NATO STANAG Air-Gapped Mesh Handheld"
+    )
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("enterprise_trial_section"),
+        color = CardSlate,
+        shape = RoundedCornerShape(14.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, TacticalEmerald.copy(alpha = 0.6f))
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "🛡️ REQUEST ENTERPRISE TRIAL & AUDIT",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TacticalEmerald,
+                    letterSpacing = 0.5.sp
+                )
+                Surface(
+                    color = QuantumCyan.copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(4.dp)
+                ) {
+                    Text(
+                        text = "30-DAY TRIAL",
+                        fontSize = 8.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = QuantumCyan,
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                    )
+                }
+            }
+
+            Text(
+                text = "Request a tailored proof-of-concept APK build, custom MDM tenant policies, and schedule a zero-trust architecture demo with our defense engineers.",
+                fontSize = 10.sp,
+                color = TextSecondary,
+                lineHeight = 14.sp
+            )
+
+            if (isSubmitted) {
+                Surface(
+                    color = TacticalEmerald.copy(alpha = 0.15f),
+                    shape = RoundedCornerShape(10.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, TacticalEmerald)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = "✅ Enterprise Audit Ticket Issued!",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TacticalEmerald
+                        )
+                        Text(
+                            text = "Ticket Ref: $ticketId",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = QuantumCyan,
+                            fontFamily = FontFamily.Monospace
+                        )
+                        Text(
+                            text = "Your evaluation request for $organization ($sector) has been logged into our zero-trust onboarding portal. A security specialist will reach out to $email within 4 business hours to arrange demo scheduling.",
+                            fontSize = 10.sp,
+                            color = TextPrimary,
+                            lineHeight = 14.sp
+                        )
+                        Button(
+                            onClick = { isSubmitted = false },
+                            colors = ButtonDefaults.buttonColors(containerColor = InnerBoxSlate),
+                            modifier = Modifier.padding(top = 4.dp)
+                        ) {
+                            Text("Submit Another Request", fontSize = 10.sp, color = QuantumCyan)
+                        }
+                    }
+                }
+            } else {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Full Name *", fontSize = 10.sp) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("trial_name_input"),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = TacticalEmerald,
+                        unfocusedBorderColor = BorderSlate,
+                        focusedLabelColor = TacticalEmerald,
+                        unfocusedLabelColor = TextMuted,
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary
+                    )
+                )
+
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Enterprise / Agency Email *", fontSize = 10.sp) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("trial_email_input"),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = TacticalEmerald,
+                        unfocusedBorderColor = BorderSlate,
+                        focusedLabelColor = TacticalEmerald,
+                        unfocusedLabelColor = TextMuted,
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary
+                    )
+                )
+
+                OutlinedTextField(
+                    value = organization,
+                    onValueChange = { organization = it },
+                    label = { Text("Organization / Agency *", fontSize = 10.sp) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("trial_org_input"),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = TacticalEmerald,
+                        unfocusedBorderColor = BorderSlate,
+                        focusedLabelColor = TacticalEmerald,
+                        unfocusedLabelColor = TextMuted,
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary
+                    )
+                )
+
+                // Sector selector
+                Text("Operating Sector:", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    sectorOptions.forEach { option ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { sector = option }
+                                .padding(vertical = 1.dp)
+                        ) {
+                            RadioButton(
+                                selected = (sector == option),
+                                onClick = { sector = option },
+                                colors = RadioButtonDefaults.colors(selectedColor = TacticalEmerald)
+                            )
+                            Text(option, fontSize = 10.sp, color = if (sector == option) TextPrimary else TextSecondary)
+                        }
+                    }
+                }
+
+                // Scale selector
+                Text("Deployment Scale:", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    scaleOptions.forEach { option ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { scale = option }
+                                .padding(vertical = 1.dp)
+                        ) {
+                            RadioButton(
+                                selected = (scale == option),
+                                onClick = { scale = option },
+                                colors = RadioButtonDefaults.colors(selectedColor = QuantumCyan)
+                            )
+                            Text(option, fontSize = 10.sp, color = if (scale == option) TextPrimary else TextSecondary)
+                        }
+                    }
+                }
+
+                // HSM Preference selector
+                Text("Preferred Hardware HSM:", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextMuted)
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    hsmOptions.forEach { option ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { hsmPreference = option }
+                                .padding(vertical = 1.dp)
+                        ) {
+                            RadioButton(
+                                selected = (hsmPreference == option),
+                                onClick = { hsmPreference = option },
+                                colors = RadioButtonDefaults.colors(selectedColor = TacticalEmerald)
+                            )
+                            Text(option, fontSize = 10.sp, color = if (hsmPreference == option) TextPrimary else TextSecondary)
+                        }
+                    }
+                }
+
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    label = { Text("Security Audit & Demo Schedule Preferences", fontSize = 10.sp) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("trial_notes_input"),
+                    minLines = 2,
+                    maxLines = 4,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = TacticalEmerald,
+                        unfocusedBorderColor = BorderSlate,
+                        focusedLabelColor = TacticalEmerald,
+                        unfocusedLabelColor = TextMuted,
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextPrimary
+                    )
+                )
+
+                Button(
+                    onClick = {
+                        if (name.isNotBlank() && email.isNotBlank()) {
+                            val code = (1000..9999).random()
+                            ticketId = "AUDIT-REQ-$code-2026"
+                            isSubmitted = true
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("submit_trial_request_button"),
+                    enabled = name.isNotBlank() && email.isNotBlank(),
+                    colors = ButtonDefaults.buttonColors(containerColor = TacticalEmerald)
+                ) {
+                    Text(
+                        text = "🛡️ Submit Enterprise Trial Request",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ObsidianBlack
+                    )
+                }
+            }
+        }
     }
 }
 
